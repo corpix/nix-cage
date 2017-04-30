@@ -12,13 +12,21 @@ gh_user        = corpix
 gh_repo        = devcage
 image_uri      = $(gh_user).github.io/devcage
 
-include */build.mk
-
 .PHONY: all
 all: build test
 
 .PHONY: build
 build:: $(build)
+	@if [ "$(shell git ls-files -m | wc -l)" != 0 ];                      \
+	then                                                                  \
+		echo "You have not commited your changes.";                   \
+		echo "This will have affect on a version of the containers."; \
+		echo "Please commit your changes.";                           \
+		echo;                                                         \
+		exit 1;                                                       \
+	fi 1>&2
+
+include */build.mk
 
 $(build):
 	mkdir -p "$(build)"
@@ -89,4 +97,4 @@ test:
 .PHONY: clean
 clean:
 	rm -rf $(build)
-	rm -rf .acbuild
+	sudo rm -rf .acbuild
