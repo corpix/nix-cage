@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 
 root           = $(shell git rev-parse --show-toplevel)
-version        = $(shell git rev-parse --short HEAD)
+version        = 1.0-$(shell git rev-parse --short HEAD)
 scripts        = $(root)/scripts
 build          = $(root)/build
 builder        = sudo PATH=$(PATH) $(scripts)/build
@@ -13,7 +13,7 @@ image_uri      = $(gh_user).github.io/devcage
 include */build.mk
 
 .PHONY: all
-all: build
+all: build test
 
 .PHONY: build
 build:: $(build)
@@ -21,22 +21,21 @@ build:: $(build)
 $(build):
 	mkdir -p "$(build)"
 
-.PHONY: clean
-clean:
-	rm -rf $(build)
-	rm -rf .acbuild
-
-# .PHONY: sign
-# sign: $(container)
-# 	gpg2                                \
-# 		--default-key $(gpg_key_id) \
-# 		--armor                     \
-# 		--output $(container).asc   \
-# 		--detach-sig $(container)
-# 	gpg2                                \
-# 		--default-key $(gpg_key_id) \
-# 		--verify $(container).asc   \
-# 		$(container)
+.PHONY: sign
+sign: $(build)
+	find $(build) -type f -name '*.aci'                  \
+		| xargs -I{} bash -c '                       \
+			set -e;                              \
+			gpg2                                 \
+				--default-key $(gpg_key_id)  \
+				--armor                      \
+				--output {}.asc              \
+				--detach-sig {}              \
+			&& gpg2                              \
+				--default-key $(gpg_key_id)  \
+				--verify {}.asc              \
+				{}                           \
+		'
 
 .PHONY: tag
 tag:
@@ -50,25 +49,39 @@ release:
 		-r $(gh_repo)  \
 		-t $(version)
 
-# .PHONY: upload
-# upload: release
-# 	[ ! -z $(GITHUB_TOKEN) ]
-# 	github-release upload                         \
-# 		-u $(gh_user)                         \
-# 		-r $(gh_repo)                         \
-# 		-t $(version)                         \
-# 		-n $(shell basename $(container))     \
-# 		-f $(container)
-# 	github-release upload                         \
-# 		-u $(gh_user)                         \
-# 		-r $(gh_repo)                         \
-# 		-t $(version)                         \
-# 		-n $(shell basename $(container)).asc \
-# 		-f $(container).asc
+.PHONY: upload
+upload: $(build) release
+	[ ! -z $(GITHUB_TOKEN) ]
+	find $(build) -type f -name '*.aci'            \
+		| xargs -I{} bash -c '                 \
+			set -e;                        \
+			github-release upload          \
+				-u $(gh_user)          \
+				-r $(gh_repo)          \
+				-t $(version)          \
+				-n $$(basename {})     \
+				-f {}                  \
+			&& github-release upload       \
+				-u $(gh_user)          \
+				-r $(gh_repo)          \
+				-t $(version)          \
+				-n $$(basename {}).asc \
+				-f {}.asc              \
+		'
 
-# .PHONY: test
-# test: $(container)
-# 	sudo rkt --insecure-options=all \
-# 		run $(container)        \
-# 		--exec=/bin/sh --       \
-# 		-c 'echo 1'
+.PHONY: test
+test:
+	[ "$(shell ls $(build)/*.aci | wc -l)" -gt 0 ]
+	find $(build) -type f -name '*.aci'             \
+		| xargs -I{} bash -c '                  \
+			set -e;                         \
+			sudo rkt --insecure-options=all \
+				run {}                  \
+				--exec=/bin/sh --       \
+				-c "echo 1"             \
+		'
+
+.PHONY: clean
+clean:
+	rm -rf $(build)
+	rm -rf .acbuild
