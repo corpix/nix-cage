@@ -1,4 +1,4 @@
-developer-cage
+devcage
 --------------
 
 Development with Emacs in a container.
