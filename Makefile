@@ -24,7 +24,8 @@ build:: $(build)
 		exit 1;                                                       \
 	fi 1>&2
 
-include */build.mk
+include base/build.mk
+include go/build.mk
 
 .PHONY: all
 all: build test
