@@ -26,6 +26,7 @@ build:: $(build)
 
 include base/build.mk
 include go/build.mk
+include everything/build.mk
 
 .PHONY: all
 all: build test
