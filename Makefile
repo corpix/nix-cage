@@ -58,7 +58,9 @@ upload: $(build)
 	find $(build) -type f -name '*.aci'            \
 		| xargs -I{} bash -c '                 \
 			set -e;                        \
-			github-release upload          \
+			[ -e {} ]                      \
+			&& [ -e {}.asc ]               \
+			&& github-release upload       \
 				-u $(gh_user)          \
 				-r $(gh_repo)          \
 				-t $(version)          \
