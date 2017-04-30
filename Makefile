@@ -46,13 +46,14 @@ tag:
 .PHONY: release
 release:
 	[ ! -z $(GITHUB_TOKEN) ]
+	git push origin --tags
 	github-release release \
 		-u $(gh_user)  \
 		-r $(gh_repo)  \
 		-t $(version)
 
 .PHONY: upload
-upload: $(build) release
+upload: $(build)
 	[ ! -z $(GITHUB_TOKEN) ]
 	find $(build) -type f -name '*.aci'            \
 		| xargs -I{} bash -c '                 \

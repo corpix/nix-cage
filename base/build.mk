@@ -1,7 +1,7 @@
 .PHONY: base
 base: $(build)
 	$(builder)                                            \
-		base                                          \
+		$(image_uri)/base                             \
 		$(version)                                    \
 		$(root)/base/builder.aci.sh                   \
 		$(build)/base-$(version)-$(os)-$(arch).aci    \
