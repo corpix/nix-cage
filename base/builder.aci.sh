@@ -11,7 +11,7 @@ ac run -- sh -c "
    $(proxy)
    dnf group install -y --best 'development tools'
    dnf install -y --best                             \
-       emacs make tmux tree mc htop iotop zsh        \
+       emacs-nox make tmux tree mc htop iotop zsh    \
        unzip bsdtar sudo xz tar p7zip                \
        openssh-clients openssh-server                \
        'dnf-command(copr)'
