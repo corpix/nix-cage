@@ -2,6 +2,7 @@
 from argparse import ArgumentParser
 from sys import stdin, stdout, stderr
 from subprocess import Popen as Subprocess
+from os import environ
 from os.path import isabs, abspath, expanduser
 from shutil import which
 import atexit
@@ -12,7 +13,7 @@ system_streams = {
     "stderr": stderr,
 }
 
-def run(executable, arguments=[], streams=system_streams):
+def run(executable, arguments=[], streams=system_streams, environ=environ):
     path = executable
     if not isabs(executable):
         path = which(executable)
@@ -24,6 +25,7 @@ def run(executable, arguments=[], streams=system_streams):
     )
     return Subprocess(
         [path] + arguments,
+        env=environ,
         **streams
     )
 

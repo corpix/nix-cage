@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -e
+
+chown                            \
+    $DEMOTE_UID:$DEMOTE_GID      \
+    /home/user/* /home/user/.*p
+
+exec /usr/bin/demote             \
+    --source=id                  \
+    --uid $DEMOTE_UID            \
+    --gid $DEMOTE_GID            \
+    /usr/bin/emacs               \
+    -- -nw -l /etc/emacs/init.el

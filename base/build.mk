@@ -1,6 +1,6 @@
 .PHONY: base
 base: $(build)
-	$(builder)                                            \
+	toolbox=$(toolbox) $(builder)                         \
 		$(image_uri)/base                             \
 		$(version)                                    \
 		$(root)/base/builder.aci.sh                   \

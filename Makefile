@@ -12,9 +12,10 @@ gh_user        = corpix
 gh_repo        = devcage
 image_uri      = $(gh_user).github.io/devcage
 base           = $(build)/base-$(version)-$(os)-$(arch).aci
+toolbox        = $(scripts)/toolbox
 
 .PHONY: build
-build:: $(build)
+build:: $(build) $(toolbox)
 	@if [ "$(shell git ls-files -m | wc -l)" != 0 ];                      \
 	then                                                                  \
 		echo "You have not commited your changes.";                   \
@@ -35,6 +36,9 @@ all: build test
 
 $(build):
 	@mkdir -p "$(build)"
+
+$(toolbox):
+	git submodule update --init --recursive
 
 .PHONY: sign
 sign: $(build)
