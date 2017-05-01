@@ -5,7 +5,11 @@ ac run -- sh -c "
    set -e
    $(proxy)
    dnf group install -y --best 'development tools'
-   dnf install -y --best emacs make tmux tree mc htop iotop zsh unzip bsdtar sudo
+   dnf install -y --best                             \
+       emacs make tmux tree mc htop iotop zsh        \
+       unzip bsdtar sudo xz tar p7zip                \
+       openssh-clients sshd                          \
+       'dnf-command(copr)'
    useradd -md /home/user -U user
    usermod -p '*' user
    echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
