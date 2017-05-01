@@ -1,3 +1,2 @@
 *.aci
-repository
-build
+/build

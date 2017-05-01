@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+from argparse import ArgumentParser
+from sys import stdin, stdout, stderr
+from subprocess import Popen as Subprocess
+from os.path import isabs, abspath, expanduser
+from shutil import which
+import atexit
+
+system_streams = {
+    "stdin" : stdin,
+    "stdout": stdout,
+    "stderr": stderr,
+}
+
+def run(executable, arguments=[], streams=system_streams):
+    path = executable
+    if not isabs(executable):
+        path = which(executable)
+    stderr.write(
+        "{} {}\n".format(
+            executable,
+            arguments
+        )
+    )
+    return Subprocess(
+        [path] + arguments,
+        **streams
+    )
+
+def ac(arguments, streams=system_streams):
+    return run(
+        "acbuild",
+        list(arguments),
+        streams
+    )
+
+def successful_exit(code):
+    return code == 0
+
+def applywhile(predicate, apply, lst, default):
+    res = default
+    for v in lst:
+        res = apply(v)
+        if predicate(res):
+            continue
+        break
+    return res
+
+def before(args):
+    commands = []
+
+    if args["base"]:
+        commands = commands + [
+            ("begin", args["base"],),
+        ]
+    else:
+        commands = commands + [
+            ("begin",),
+        ]
+
+    commands = commands + [
+        ("label", "add", "version", args["version"],),
+        ("set-name", args["name"],),
+    ]
+
+    return applywhile(
+        successful_exit,
+        lambda v: ac(v).wait(),
+        commands,
+        0
+    )
+
+def build(args):
+    return run(
+        abspath(expanduser(args["builder"]))
+    ).wait()
+
+def after(args):
+    commands = [
+        ("write", "--overwrite", args["target"],),
+    ]
+    return applywhile(
+        successful_exit,
+        lambda v: ac(v).wait(),
+        commands,
+        0
+    )
+
+def finalize():
+    return ac(["end"], streams={}).wait()
+
+def main(args):
+    atexit.register(finalize)
+
+    code = before(args)
+    if code != 0:
+        exit(code)
+
+    code = build(args)
+    if code != 0:
+        exit(code)
+
+    code = after(args)
+    if code != 0:
+        exit(code)
+
+if __name__ == "__main__":
+    p = ArgumentParser()
+    p.add_argument(
+        "name",
+        help="Container name"
+    )
+    p.add_argument(
+        "version",
+        help="Container version label"
+    )
+    p.add_argument(
+        "builder",
+        help="Acbuild script to run"
+    )
+    p.add_argument(
+        "target",
+        help="Target file to write container to"
+    )
+    p.add_argument(
+        "--base",
+        help="Base container"
+    )
+
+    main(p.parse_args().__dict__)
