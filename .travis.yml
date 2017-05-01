@@ -3,8 +3,8 @@ sudo: required
 dist: xenial
 install:
   - sudo apt install systemd jq -y
-  - wget https://github.com/coreos/rkt/releases/download/v1.25.0/rkt_1.25.0-1_amd64.deb
-  - sudo dpkg -i rkt_1.25.0-1_amd64.deb
+  - wget https://github.com/coreos/rkt/releases/download/v1.15.0/rkt_1.15.0-1_amd64.deb
+  - sudo dpkg -i rkt_1.15.0-1_amd64.deb
   - go get github.com/containers/build/...
   - make build
 script: make test
