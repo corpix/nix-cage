@@ -6,13 +6,20 @@ os             = linux
 arch           = amd64
 scripts        = $(root)/scripts
 build          = $(root)/build
-builder        = sudo PATH=$(PATH) $(scripts)/build
 gpg_key_id     = 650177753CFC13FA9490ED30887A0D14C7C55BD6
 gh_user        = corpix
 gh_repo        = devcage
 image_uri      = $(gh_user).github.io/devcage
 base           = $(build)/base-$(version)-$(os)-$(arch).aci
 toolbox        = $(scripts)/toolbox
+builder        = sudo      \
+	PATH=$(PATH)       \
+	version=$(version) \
+	os=$(os)           \
+	arch=$(arch)       \
+	scripts=$(scripts) \
+	toolbox=$(toolbox) \
+	$(scripts)/build
 
 .PHONY: build
 build:: $(build) $(toolbox)
