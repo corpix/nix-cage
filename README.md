@@ -78,7 +78,7 @@ Projects/
 
 In each container Emacs is started with additional lisp file which will do:
 
-> Emacs starts with `-l <list-file.el>`.
+> Emacs starts with `-l <lisp-file.el>`.
 
 ``` emacs-lisp
 (setq server-socket-dir "/var/run/emacs")

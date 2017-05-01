@@ -13,7 +13,11 @@ ac run -- sh -c "
    useradd -md /home/user -U user
    usermod -p '*' user
    echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+   mkdir /etc/emacs
 "
+
+ac copy $(script_dir)/emacs-init.el /etc/emacs/init.el
+ac set-exec -- /usr/bin/emacs -nw -l /etc/emacs/init.el
 
 ac set-user user
 ac set-working-directory /home/user
