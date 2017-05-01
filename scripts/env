@@ -2,10 +2,6 @@
 set -e
 # set -x
 
-script_dir() {
-    cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
-}
-
 proxy() {
     local v
     for v in `env | grep -i _proxy`

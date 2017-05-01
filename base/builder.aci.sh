@@ -8,7 +8,7 @@ ac run -- sh -c "
    dnf install -y --best                             \
        emacs make tmux tree mc htop iotop zsh        \
        unzip bsdtar sudo xz tar p7zip                \
-       openssh-clients sshd                          \
+       openssh-clients openssh-server                \
        'dnf-command(copr)'
    useradd -md /home/user -U user
    usermod -p '*' user
@@ -16,7 +16,7 @@ ac run -- sh -c "
    mkdir /etc/emacs
 "
 
-ac copy $(script_dir)/emacs-init.el /etc/emacs/init.el
+ac copy $(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/emacs-init.el /etc/emacs/init.el
 ac set-exec -- /usr/bin/emacs -nw -l /etc/emacs/init.el
 
 ac set-user user
