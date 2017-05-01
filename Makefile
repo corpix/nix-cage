@@ -25,7 +25,9 @@ build:: $(build)
 	fi 1>&2
 
 include base/build.mk
+include haskell/build.mk
 include go/build.mk
+include javascript/build.mk
 include everything/build.mk
 
 .PHONY: all
