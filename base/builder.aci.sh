@@ -5,9 +5,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 ac run -- sh -c "
    set -e
-   useradd -md /home/user -U user
-   usermod -p '*' user
-   echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+   mkdir -p /home/user
    $(proxy)
    dnf group install -y --best 'development tools'
    dnf install -y --best                             \

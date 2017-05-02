@@ -12,13 +12,17 @@ gh_repo        = devcage
 image_uri      = $(gh_user).github.io/devcage
 base           = $(build)/base-$(version)-$(os)-$(arch).aci
 toolbox        = $(scripts)/toolbox
-builder        = sudo      \
-	PATH=$(PATH)       \
-	version=$(version) \
-	os=$(os)           \
-	arch=$(arch)       \
-	scripts=$(scripts) \
-	toolbox=$(toolbox) \
+builder        = sudo              \
+	PATH=$(PATH)               \
+	version=$(version)         \
+	os=$(os)                   \
+	arch=$(arch)               \
+	scripts=$(scripts)         \
+	toolbox=$(toolbox)         \
+	http_proxy=$(http_proxy)   \
+	https_proxy=$(https_proxy) \
+	HTTP_PROXY=$(HTTP_PROXY)   \
+	HTTPS_PROXY=$(HTTPS_PROXY) \
 	$(scripts)/build
 
 .PHONY: build

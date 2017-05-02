@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-chown                            \
-    $DEMOTE_UID:$DEMOTE_GID      \
-    /home/user/* /home/user/.*p
+useradd -md /home/user -U user -u $DEMOTE_UID -g $DEMOTE_GID
+usermod -p '*' user
+
+grep '^user' > /dev/null 2>&1 | echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+chown                       \
+    $DEMOTE_UID:$DEMOTE_GID \
+    /home/user              \
+    /home/user/*            \
+    /home/user/.*
 
 exec /usr/bin/demote             \
     --source=id                  \
