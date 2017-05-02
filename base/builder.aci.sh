@@ -19,8 +19,9 @@ ac run -- sh -c "
 ac copy "$script_dir"/emacs-init.el /etc/emacs/init.el
 ac set-working-directory /home/user
 
-ac mount add projects /home/user/Projects
-ac mount add emacs    /home/user/.emacs.d
+ac mount add projects     /home/user/Projects
+ac mount add emacs        /home/user/.emacs.d
+ac mount add emacs-socket /var/run/emacs
 
 ac environment add PATH       /home/user/Projects/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ac environment add DEMOTE_UID 1000

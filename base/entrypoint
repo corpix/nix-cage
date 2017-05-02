@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-useradd -md /home/user -U user -u $DEMOTE_UID -g $DEMOTE_GID
-usermod -p '*' user
-
-grep '^user' > /dev/null 2>&1 | echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+grep '^user:' /etc/passwd  > /dev/null 2>&1 || echo "user:x:$DEMOTE_UID:$DEMOTE_GID::/home/user:/usr/bin/bash" >> /etc/passwd
+grep '^user'  /etc/sudoers > /dev/null 2>&1 || echo "user ALL=(ALL) NOPASSWD:ALL"                              >> /etc/sudoers
 
 chown                       \
     $DEMOTE_UID:$DEMOTE_GID \
     /home/user              \
     /home/user/*            \
-    /home/user/.*
+    /home/user/.*           \
+    /var/run/emacs
 
 exec /usr/bin/demote             \
     --source=id                  \
