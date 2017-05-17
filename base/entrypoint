@@ -16,4 +16,4 @@ exec /usr/bin/demote             \
     --uid $DEMOTE_UID            \
     --gid $DEMOTE_GID            \
     /usr/bin/emacs               \
-    -- -nw -l /etc/emacs/init.el
+    -- -nw -l /home/user/.emacs.d/init.el

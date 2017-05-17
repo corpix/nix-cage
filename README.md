@@ -3,23 +3,6 @@ devcage
 
 Development with Emacs in a container.
 
-## Why?
-
-I am concerned about the tools I have in my Linux system. I have tons of them.
-And every time I run `go get ...` or `npm install ...` or something other(pip, stack, cabal, cargo, whatever)
-this tools could do so much things to my system and my files which I don't want to happen.
-Also this tools being run inherit a permissions of the user they was run by.
-
-Sometimes I think that my system is just a big junkyard lacking control and transparency.
-
-In Linux we have a nice thing called containers. They acts like a sandboxes for the applications.
-And you could apply various restrictions to them. So... why not use the containers for your development environment?
-
-Cons and pros:
-
-- Containers are stateless(reboot them to loose your state)
-
-
 ## Containers
 
 There are containers for:
@@ -28,22 +11,27 @@ There are containers for:
 - haskell
 - python
 - javascript
+- everything (all containers in one)
 
 All of them are built against a common container which contains Emacs.
 The purpose of this containers is to divide a sets of tools between environments.
 
 So every container will have Emacs + some set of tools to write code in specific language.
 
-> What if I want to develop in go+javascript in the same Emacs instance?
-> With this approach you will need to build a separate container which will
-> contain all tools to compile go and run javascript. But probably I will make a
-> container with all tools in one in the future, will see.
+## Running a container
 
-## Workflow
+To run the container build with all tools:
 
-### Projects
+``` shell
+sudo rkt run                                                      \
+    --interactive corpix.github.io/devcage/everything:1.0-6e58b02 \
+    --volume=projects,kind=host,source=$HOME/Projects             \
+    --volume=emacs,kind=host,source=$HOME/.emacs.d
+```
 
-This directory contains all your projects.
+## Projects structure
+
+Directory at `~/Projects` contains all your projects.
 
 The structure is the same as `GOPATH` for [go](https://golang.org/doc/code.html#GOPATH):
 
@@ -53,6 +41,8 @@ Projects/
     pkg/
     src/
 ```
+
+> `Projects/bin` will be added to `PATH`.
 
 You place your projects by the URI of the project repository in SCM:
 
@@ -74,12 +64,8 @@ Projects/
                 .../
 ```
 
-### Emacs socket
+## Emacs configuration structure
 
-In each container Emacs is started with additional lisp file which will do:
+When you running a container you need to pass a volume with Emacs configuration.
 
-> Emacs starts with `-l <lisp-file.el>`.
-
-``` emacs-lisp
-(setq server-socket-dir "/var/run/emacs")
-```
+You can also pass your `~/.emacs` or move this file into `~/.emacs.d/init.el` which would be used in container entrypoint by default.
