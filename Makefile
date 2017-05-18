@@ -30,7 +30,7 @@ build:: $(build) $(toolbox)
 	@if [ "$(shell git ls-files -m | wc -l)" != 0 ];                      \
 	then                                                                  \
 		echo "You have not commited your changes.";                   \
-		echo "This will have affect on a version of the containers."; \
+		echo "This will have effect on a version of the containers."; \
 		echo "Please commit your changes.";                           \
 		echo;                                                         \
 		exit 1;                                                       \
