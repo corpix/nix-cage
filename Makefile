@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 
 root           = $(shell git rev-parse --show-toplevel)
-version        = 1.0-$(shell git rev-parse --short HEAD)
+version       ?= 1.0-$(shell git rev-parse --short HEAD)
 os             = linux
 arch           = amd64
 scripts        = $(root)/scripts
