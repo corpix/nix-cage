@@ -8,8 +8,7 @@ chown                       \
     $DEMOTE_UID:$DEMOTE_GID \
     /home/user              \
     /home/user/*            \
-    /home/user/.*           \
-    /var/run/emacs
+    /home/user/.*
 
 exec /usr/bin/demote             \
     --source=id                  \
