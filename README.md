@@ -20,7 +20,7 @@ So every container will have Emacs + some set of tools to write code in specific
 
 ## Running a container
 
-To run the container build with all tools:
+To run the container:
 
 ``` shell
 sudo rkt run                                                      \
