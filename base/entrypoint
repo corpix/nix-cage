@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
 set -e
 
-grep '^user:' /etc/passwd  > /dev/null 2>&1 || echo "user:x:$DEMOTE_UID:$DEMOTE_GID::/home/user:/usr/bin/bash" >> /etc/passwd
-grep '^user'  /etc/sudoers > /dev/null 2>&1 || echo "user ALL=(ALL) NOPASSWD:ALL"                              >> /etc/sudoers
+{
+    grep '^user:' /etc/passwd  || echo "user:x:${DEMOTE_UID}:${DEMOTE_GID}::/home/user:/usr/bin/zsh" >> /etc/passwd
+    grep '^user:' /etc/group   || echo "user:x:${DEMOTE_GID}:user"                                   >> /etc/group
+    grep '^user ' /etc/sudoers || echo "user ALL=(ALL) NOPASSWD:ALL"                                 >> /etc/sudoers
+} > /dev/null 2>&1
+
 
 chown                       \
     $DEMOTE_UID:$DEMOTE_GID \
     /home/user              \
     /home/user/*            \
     /home/user/.*
+
+
+export HOME=/home/user
+export USER=user
+export USERNAME=$USER
+export MAIL=/var/spool/mail/$USER
+export SHELL=/usr/bin/zsh
 
 exec /usr/bin/demote             \
     --source=id                  \
