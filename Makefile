@@ -82,7 +82,7 @@ tag: README.md
 release:
 	@if [ -z $(GITHUB_TOKEN) ];                                 \
 	then                                                        \
-		echo "Set github token with envrionment variable:"; \
+		echo "Set github token with environment variable:"; \
 		echo "    GITHUB_TOKEN";                            \
 		exit 1;                                             \
 	fi 1>&2
@@ -97,7 +97,7 @@ release:
 upload: $(build)
 	@if [ -z $(GITHUB_TOKEN) ];                                 \
 	then                                                        \
-		echo "Set github token with envrionment variable:"; \
+		echo "Set github token with environment variable:"; \
 		echo "    GITHUB_TOKEN";                            \
 		exit 1;                                             \
 	fi 1>&2
