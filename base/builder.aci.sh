@@ -12,6 +12,7 @@ ac run -- sh -c "
        emacs-nox make tmux tree mc htop iotop zsh    \
        unzip bsdtar sudo xz tar p7zip                \
        openssh-clients openssh-server                \
+       bind-utils                                    \
        'dnf-command(copr)'
    mkdir /etc/emacs
 "
