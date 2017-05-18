@@ -51,6 +51,13 @@ $(build):
 $(toolbox):
 	git submodule update --init --recursive
 
+.PHONY: README.md
+README.md: $(toolbox)
+	version=$(version)                         \
+		$(toolbox)/template/format-environ \
+			--file README.tpl.md       \
+			--out README.md
+
 .PHONY: sign
 sign: $(build)
 	@find $(build) -type f -name '*.aci'                 \
@@ -68,7 +75,7 @@ sign: $(build)
 		'
 
 .PHONY: tag
-tag:
+tag: README.md
 	@git tag $(version)
 
 .PHONY: release
