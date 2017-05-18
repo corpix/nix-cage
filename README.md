@@ -24,7 +24,7 @@ To run the container build with all tools:
 
 ``` shell
 sudo rkt run                                                      \
-    --interactive corpix.github.io/devcage/everything:1.0-a37547a \
+    --interactive corpix.github.io/devcage/everything:1.0-8ca52d6 \
     --volume=projects,kind=host,source=$HOME/Projects             \
     --volume=emacs,kind=host,source=$HOME/.emacs.d
 ```
