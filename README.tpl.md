@@ -25,7 +25,9 @@ To run the container:
 sudo rkt run                                                      \
     --interactive corpix.github.io/devcage/everything:${version} \
     --volume=projects,kind=host,source=$$HOME/Projects             \
-    --volume=emacs,kind=host,source=$$HOME/.emacs.d
+    --volume=emacs,kind=host,source=$$HOME/.emacs.d               \
+    --set-env=DEMOTE_UID=$$(id -u) --set-env=DEMOTE_GID=$$(id -g)   \
+    --set-env=TERM=$$TERM
 ```
 
 ## Projects structure
@@ -63,8 +65,39 @@ Projects/
                 .../
 ```
 
+## UIDs
+
+There are two environment variables each container receives:
+
+- `DEMOTE_UID` defaults to 1000
+- `DEMOTE_GID` defaults to 1000
+
+They receive your user `uid` and `gid` to:
+
+- run emacs with your `uid` and `gid`
+- `chown` mountpoints inside container to your `uid` and `gid`
+- and other permission related things to prepare environment for you
+
 ## Emacs configuration structure
 
 When you running a container you need to pass a volume with Emacs configuration.
 
 You can also pass your `~/.emacs` or move this file into `~/.emacs.d/init.el` which would be used in container entrypoint by default.
+
+
+## Selinux
+
+You will need to load a module for selinux because:
+
+> This module targets Fedora linux.
+
+- rkt selinux support in fedora is poor
+- you will need allow container to work with your home directory(actually container work with parts of the home directory)
+
+To load the module:
+
+- clone this repository
+- navigate into `selinux` directory in your terminal
+- run `make && sudo make install` to build and insert module
+
+> You could uninstall module with `make uninstall`
