@@ -9,7 +9,6 @@ There are containers for:
 
 - go
 - haskell
-- python
 - javascript
 - everything (all containers in one)
 
