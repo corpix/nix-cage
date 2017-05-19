@@ -13,6 +13,7 @@ ac run -- sh -c "
        unzip bsdtar sudo xz tar p7zip                \
        openssh-clients openssh-server                \
        bind-utils iputils iproute nmap git           \
+       aspell aspell-en                              \
        'dnf-command(copr)'
    mkdir /etc/emacs
    dnf clean all
