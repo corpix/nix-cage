@@ -36,6 +36,8 @@ Directory at `~/Projects` contains all your projects.
 
 The structure is the same as `GOPATH` for [go](https://golang.org/doc/code.html#GOPATH):
 
+> You can move your projects using [this script](https://github.com/corpix/toolbox/blob/master/development/projects).
+
 ``` text
 Projects/
     bin/
