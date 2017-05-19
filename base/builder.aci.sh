@@ -15,6 +15,8 @@ ac run -- sh -c "
        bind-utils iputils iproute nmap git           \
        'dnf-command(copr)'
    mkdir /etc/emacs
+   dnf clean all
+   rm -rf /tmp/*
 "
 
 ac set-working-directory /home/user

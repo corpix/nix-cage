@@ -6,6 +6,8 @@ ac run -- sh -c "
    set -e
    $(proxy)
    dnf install -y --best golang
+   dnf clean all
+   rm -rf /tmp/*
 "
 
 ac environment add GOPATH /home/user/Projects
