@@ -42,7 +42,7 @@ allow container_t fs_t:filesystem remount;
 allow container_t unconfined_t:unix_dgram_socket sendto;
 allow container_t user_home_t:dir { add_name create read remove_name setattr write };
 allow container_t user_home_t:file { append create execute execute_no_trans getattr ioctl link open read rename setattr unlink write };
-allow container_t user_home_t:dir { rename rmdir }; 
+allow container_t user_home_t:dir { rename rmdir };
 allow container_t user_home_t:lnk_file { create read unlink };
 allow container_t user_tmp_t:file { open write };
 allow container_t usermodehelper_t:file { mounton write };
@@ -53,5 +53,3 @@ allow container_t var_run_t:sock_file { create unlink };
 
 allow xdm_t rkt_var_lib_t:dir { getattr search };
 allow xdm_t virt_var_lib_t:dir getattr;
-allow xdm_t rkt_var_lib_t:dir search;
-
