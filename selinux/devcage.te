@@ -21,7 +21,7 @@ require {
 	class capability { dac_override dac_read_search };
 	class lnk_file { create read unlink };
 	class unix_dgram_socket sendto;
-	class dir { add_name create getattr search mounton read remove_name rmdir setattr write };
+	class dir { add_name create getattr search mounton read rename remove_name rmdir setattr write };
 
 	type xdm_t;
 	type rkt_var_lib_t;
@@ -42,6 +42,7 @@ allow container_t fs_t:filesystem remount;
 allow container_t unconfined_t:unix_dgram_socket sendto;
 allow container_t user_home_t:dir { add_name create read remove_name setattr write };
 allow container_t user_home_t:file { append create execute execute_no_trans getattr ioctl link open read rename setattr unlink write };
+allow container_t user_home_t:dir { rename rmdir }; 
 allow container_t user_home_t:lnk_file { create read unlink };
 allow container_t user_tmp_t:file { open write };
 allow container_t usermodehelper_t:file { mounton write };
