@@ -27,7 +27,7 @@ sudo rkt run                                                      \
     --volume=projects,kind=host,source=$$HOME/Projects             \
     --volume=emacs,kind=host,source=$$HOME/.emacs.d                \
     --set-env=DEMOTE_UID=$$(id -u) --set-env=DEMOTE_GID=$$(id -g)   \
-    --set-env=TERM=$$TERM
+    --set-env=TERM=$$TERM --net=host
 ```
 
 ## Projects structure
