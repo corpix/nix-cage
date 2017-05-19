@@ -24,7 +24,7 @@ To run the container:
 
 ``` shell
 sudo rkt run                                                      \
-    --interactive corpix.github.io/devcage/everything:1.0-a464316 \
+    --interactive corpix.github.io/devcage/everything:1.0-ac48b21 \
     --volume=projects,kind=host,source=$HOME/Projects             \
     --volume=emacs,kind=host,source=$HOME/.emacs.d
 ```
