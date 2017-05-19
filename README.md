@@ -3,6 +3,8 @@ devcage
 
 Development with Emacs in a container.
 
+![container run demo](https://corpix.github.io/projects/devcage/demo.gif)
+
 ## Containers
 
 There are containers for:
