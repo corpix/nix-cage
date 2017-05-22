@@ -3,6 +3,8 @@ devcage
 
 Development with Emacs in a container.
 
+![container run demo](https://corpix.github.io/projects/devcage/demo.gif)
+
 ## Containers
 
 There are containers for:
@@ -98,6 +100,7 @@ You will need to load a module for selinux because:
 
 To load the module:
 
+- make sure you have `container-selinux` package installed
 - clone this repository
 - navigate into `selinux` directory in your terminal
 - run `make && sudo make install` to build and insert module
