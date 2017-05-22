@@ -6,6 +6,7 @@ require {
 	type fs_t;
 	type user_tmp_t;
 	type user_home_t;
+        type proc_kcore_t;
 	type proc_t;
 	type var_run_t;
 	type sysctl_vm_t;
@@ -14,6 +15,7 @@ require {
 	type sysctl_t;
 	type rkt_var_lib_t;
 	type usermodehelper_t;
+        type system_map_t;
 	class sock_file { create unlink };
 	class unix_stream_socket { read write };
 	class file { append create execute execute_no_trans getattr ioctl link lock mounton open read rename setattr unlink write };
@@ -48,6 +50,10 @@ allow container_t user_tmp_t:file { open write };
 allow container_t usermodehelper_t:file { mounton write };
 allow container_t var_run_t:dir { add_name remove_name setattr write };
 allow container_t var_run_t:sock_file { create unlink };
+allow container_t system_map_t:file mounton;
+allow container_t proc_kcore_t:file mounton;
+allow container_t proc_t:file mounton;
+
 
 #============= xdm_t ==============
 
