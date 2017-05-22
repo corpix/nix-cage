@@ -10,6 +10,7 @@ ac run -- sh -c "
    dnf group install -y --best 'development tools'
    dnf install -y --best                             \
        emacs-nox make tmux tree mc htop iotop zsh    \
+       jq top                                        \
        unzip bsdtar sudo xz tar p7zip                \
        openssh-clients openssh-server                \
        bind-utils iputils iproute nmap git           \
