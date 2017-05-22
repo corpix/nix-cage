@@ -106,3 +106,12 @@ To load the module:
 - run `make && sudo make install` to build and insert module
 
 > You could uninstall module with `make uninstall`
+
+## DNS
+
+It uses opendns in `/etc/resolv.conf`:
+
+``` text
+nameserver 208.67.222.222
+nameserver 208.67.220.220
+```

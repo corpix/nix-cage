@@ -19,6 +19,8 @@ ac run -- sh -c "
    mkdir /etc/emacs
    dnf clean all
    rm -rf /tmp/*
+   echo 'nameserver 208.67.222.222' >  /etc/resolv.conf
+   echo 'nameserver 208.67.220.220' >> /etc/resolv.conf
 "
 
 ac set-working-directory /home/user
