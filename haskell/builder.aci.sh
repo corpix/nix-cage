@@ -8,7 +8,6 @@ ac run -- sh -c "
    dnf copr enable -y petersen/stack
    dnf install -y --best ghc ghc-devel cabal-install stack
    stack upgrade
-   stack setup
    dnf clean all
    rm -rf /tmp/*
 "
