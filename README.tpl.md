@@ -32,6 +32,40 @@ sudo rkt run                                                      \
     --set-env=TERM=$$TERM --net=host --dns=208.67.222.222
 ```
 
+Or you could use `devcage` script to run containers. To do this you should have a config file for a container.
+
+Here is a config file for the `rkt run` above:
+
+``` json
+{
+    "container": "corpix.github.io/devcage/everything:${version}",
+    "mountpoints": {
+        "~/Projects": "/home/user/Projects",
+        "~/.emacs.d": "/home/user/.emacs.d"
+    }
+}
+```
+
+Save it to the file somethere:
+
+``` shell
+cat <<EOF > everything.json
+{
+    "container": "corpix.github.io/devcage/everything:${version}",
+    "mountpoints": {
+        "~/Projects": "/home/user/Projects",
+        "~/.emacs.d": "/home/user/.emacs.d"
+    }
+}
+EOF
+```
+
+And start the container:
+
+``` shell
+devcage everything.json
+```
+
 ## Projects structure
 
 Directory at `~/Projects` contains all your projects.
