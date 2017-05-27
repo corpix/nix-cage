@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+if [ -e "$HOME/.gvm/scripts/gvm" ]
+then
+    source "$HOME/.gvm/scripts/gvm"
+fi

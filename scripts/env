@@ -13,3 +13,5 @@ proxy() {
 ac() {
     acbuild --debug "$@"
 }
+
+root="$(git rev-parse --show-toplevel)"

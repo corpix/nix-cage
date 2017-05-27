@@ -9,3 +9,5 @@ ac run -- sh -c "
    dnf clean all
    rm -rf /tmp/*
 "
+ac copy "$root"/javascript/nvm-init /usr/bin/nvm-init
+ac copy "$root"/javascript/nvm-env  /etc/profile.d/nvm-env.sh

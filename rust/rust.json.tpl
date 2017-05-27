@@ -1,5 +1,5 @@
 {
-    "container": "./build/rust-${version}-linux-amd64.aci",
+    "container": "corpix.github.io/devcage/rust:${version}",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
