@@ -56,7 +56,7 @@ def command_from_mountpoints(mountpoints):
         reduce(
             lambda acc, v: acc + [
                 s.format(
-                    name=identify(v[0]),
+                    name=identify(v[0] + " -> " + v[1]),
                     source=v[0],
                     target=v[1]
                 )
@@ -90,12 +90,16 @@ def command_from_environ(environ):
     ]
 
 def command_from_config(config):
-    return [
-        "rkt",
-        "run",
+    return ["rkt"] + config.get(
+        "rktArguments",
+        []
+    ) + ["run"] + [
         "--interactive",
         config["container"]
-    ] + command_from_mountpoints(
+    ] + config.get(
+        "containerArguments",
+        []
+    ) + command_from_mountpoints(
         get_mountpoints(config)
     ) + command_from_user(
         get_user(environ["USER"])
