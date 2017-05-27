@@ -15,6 +15,7 @@
         "~/Projects/cache/.local": "/home/user/.local",
         "~/Projects/cache/.gvm": "/home/user/.gvm",
         "~/Projects/cache/.rustup": "/home/user/.rustup",
-        "~/Projects/cache/.cargo": "/home/user/.cargo"
+        "~/Projects/cache/.cargo": "/home/user/.cargo",
+        "~/Projects/cache/.nvm": "/home/user/.nvm"
     }
 }

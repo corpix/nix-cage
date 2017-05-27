@@ -1,5 +1,5 @@
 {
-    "container": "./build/go-1.0-4c4e7f0-linux-amd64.aci",
+    "container": "corpix.github.io/devcage/go:1.0-4c4e7f0",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
@@ -12,6 +12,5 @@
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.gvm": "/home/user/.gvm"
-    },
-    "rktArguments": ["--insecure-options=all"]
+    }
 }

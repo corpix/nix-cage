@@ -12,6 +12,5 @@
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.gvm": "/home/user/.gvm"
-    },
-    "rktArguments": ["--insecure-options=all"]
+    }
 }

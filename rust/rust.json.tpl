@@ -13,6 +13,5 @@
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.rustup": "/home/user/.rustup",
         "~/Projects/cache/.cargo": "/home/user/.cargo"
-    },
-    "rktArguments": ["--insecure-options=all"]
+    }
 }

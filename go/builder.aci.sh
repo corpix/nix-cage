@@ -12,5 +12,6 @@ ac run -- sh -c "
 
 ac environment add GOPATH /home/user/Projects
 ac environment add GOROOT /usr/lib/golang
+
 ac copy "$root"/go/gvm-init /usr/bin/gvm-init
 ac copy "$root"/go/gvm-env  /etc/profile.d/gvm-env.sh
