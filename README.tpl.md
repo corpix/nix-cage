@@ -103,6 +103,10 @@ Projects/
                 .../
 ```
 
+## Entrypoint
+
+Base container entrypoint script configures container user, manages environment, and starts the Emacs.
+
 ## UIDs
 
 There are two environment variables each container receives:

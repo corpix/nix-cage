@@ -1,5 +1,5 @@
 {
-    "container": "./build/rust-1.0-afe20c6-linux-amd64.aci",
+    "container": "./build/rust-1.0-7f42f6c-linux-amd64.aci",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",

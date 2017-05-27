@@ -9,11 +9,10 @@ ac run -- sh -c "
    curl -Ls                                                                           \
         https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init \
         > /usr/bin/rustup-init
-
    chmod +x /usr/bin/rustup-init
+   echo 'export PATH=/home/user/.cargo/bin:\$PATH' >> /etc/profile.d/path.sh
+   chmod +x /etc/profile.d/path.sh
 
    dnf clean all
    rm -rf /tmp/*
 "
-
-ac environment add PATH /home/user/.cargo/bin:/home/user/Projects/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
