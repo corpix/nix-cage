@@ -6,6 +6,7 @@ ac run -- sh -c "
    set -e
    $(proxy)
    dnf install -y --best nodejs nodejs-devel npm
+   npm i -g tern
    dnf clean all
    rm -rf /tmp/*
 "
