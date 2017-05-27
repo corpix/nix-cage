@@ -37,6 +37,7 @@ build:: $(build) $(toolbox)
 	fi 1>&2
 
 include base/build.mk
+include rust/build.mk
 include haskell/build.mk
 include go/build.mk
 include javascript/build.mk
