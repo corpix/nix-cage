@@ -91,8 +91,9 @@ release:
 
 	@git push origin --tags
 	@github-release release \
-		-u $(gh_user)  \
-		-r $(gh_repo)  \
+		--draft         \
+		-u $(gh_user)   \
+		-r $(gh_repo)   \
 		-t $(version)
 
 .PHONY: upload
