@@ -11,10 +11,12 @@ ac run -- sh -c "
    dnf install -y --best                             \
        emacs-nox make tmux tree mc htop iotop zsh jq \
        unzip bsdtar sudo xz tar p7zip wget which     \
-       openssh-clients openssh-server                \
+       openssh-clients openssh-server procps-ng      \
        bind-utils iputils iproute nmap git           \
        aspell aspell-en glibc-locale-source          \
-       'dnf-command(copr)'
+       python3 'dnf-command(copr)'
+   curl -Ls https://raw.githubusercontent.com/corpix/v/master/v > /usr/bin/v
+   chmod +x /usr/bin/v
    mkdir /etc/emacs
    dnf clean all
    rm -rf /tmp/*

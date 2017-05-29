@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -e
-
-# grep -v 'Already installed' is to get rid of
-# [ -d "$GVM_DEST/$GVM_NAME" ] && display_error "Already installed!"
-# We always have ~/.gvm when container starts no matter inited gvm or not
-curl -sSL https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer \
-    | grep -v 'Already installed'                                                       \
-    | bash

@@ -1,5 +1,5 @@
 {
-    "container": "corpix.github.io/devcage/everything:1.0-6aebdbb",
+    "container": "corpix.github.io/devcage/everything:1.0-2dfb970",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",

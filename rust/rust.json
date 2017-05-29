@@ -1,5 +1,5 @@
 {
-    "container": "./build/rust-1.0-4c4e7f0-linux-amd64.aci",
+    "container": "corpix.github.io/devcage/rust:1.0-2dfb970",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
@@ -13,6 +13,5 @@
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.rustup": "/home/user/.rustup",
         "~/Projects/cache/.cargo": "/home/user/.cargo"
-    },
-    "rktArguments": ["--insecure-options=all"]
+    }
 }
