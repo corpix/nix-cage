@@ -1,5 +1,5 @@
 {
-    "container": "corpix.github.io/devcage/rust:1.0-2dfb970",
+    "container": "corpix.github.io/devcage/rust:1.0-50f892a",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",

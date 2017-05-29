@@ -1,5 +1,5 @@
 {
-    "container": "corpix.github.io/devcage/everything:1.0-2dfb970",
+    "container": "corpix.github.io/devcage/everything:1.0-50f892a",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
@@ -13,9 +13,8 @@
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.stack": "/home/user/.stack",
         "~/Projects/cache/.local": "/home/user/.local",
-        "~/Projects/cache/.gvm": "/home/user/.gvm",
         "~/Projects/cache/.rustup": "/home/user/.rustup",
         "~/Projects/cache/.cargo": "/home/user/.cargo",
-        "~/Projects/cache/.nvm": "/home/user/.nvm"
+        "~/Projects/cache/.v": "/home/user/.v"
     }
 }

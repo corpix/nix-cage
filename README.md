@@ -3,8 +3,6 @@ devcage
 
 Development with Emacs in a container.
 
-![container run demo](https://corpix.github.io/projects/devcage/demo.gif)
-
 ## Containers
 
 There are containers for:
@@ -25,7 +23,7 @@ To run the container:
 
 ``` shell
 sudo rkt run                                                      \
-    --interactive corpix.github.io/devcage/everything:1.0-f6c79fc \
+    --interactive corpix.github.io/devcage/everything:1.0-50f892a \
     --volume=projects,kind=host,source=$HOME/Projects             \
     --volume=emacs,kind=host,source=$HOME/.emacs.d                \
     --set-env=DEMOTE_UID=$(id -u) --set-env=DEMOTE_GID=$(id -g)   \
@@ -38,7 +36,7 @@ Here is a config file for the `rkt run` above:
 
 ``` json
 {
-    "container": "corpix.github.io/devcage/everything:1.0-f6c79fc",
+    "container": "corpix.github.io/devcage/everything:1.0-50f892a",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d"
@@ -51,7 +49,7 @@ Save it to the file somethere:
 ``` shell
 cat <<EOF > everything.json
 {
-    "container": "corpix.github.io/devcage/everything:1.0-f6c79fc",
+    "container": "corpix.github.io/devcage/everything:1.0-50f892a",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d"
@@ -102,6 +100,10 @@ Projects/
             corpix/
                 .../
 ```
+
+## Entrypoint
+
+Base container entrypoint script configures container user, manages environment, and starts the Emacs.
 
 ## UIDs
 
