@@ -5,7 +5,7 @@ haskell: $(build)
 		$(version)                                    \
 		$(root)/haskell/builder.aci.sh                \
 		$(build)/haskell-$(version)-$(os)-$(arch).aci \
-		--base=$(base)
+		--base=$(base_uri)
 	version=$(version)                                    \
 		$(toolbox)/template/format-environ            \
 		--file $(root)/haskell/haskell.json.tpl       \

@@ -5,7 +5,7 @@ rust: $(build)
 		$(version)                                 \
 		$(root)/rust/builder.aci.sh                \
 		$(build)/rust-$(version)-$(os)-$(arch).aci \
-		--base=$(base)
+		--base=$(base_uri)
 	version=$(version)                                 \
 		$(toolbox)/template/format-environ         \
 		--file $(root)/rust/rust.json.tpl          \

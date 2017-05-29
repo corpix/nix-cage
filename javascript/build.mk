@@ -5,7 +5,7 @@ javascript: $(build)
 		$(version)                                       \
 		$(root)/javascript/builder.aci.sh                \
 		$(build)/javascript-$(version)-$(os)-$(arch).aci \
-		--base=$(base)
+		--base=$(base_uri)
 	version=$(version)                                       \
 		$(toolbox)/template/format-environ               \
 		--file $(root)/javascript/javascript.json.tpl    \

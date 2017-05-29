@@ -3,7 +3,6 @@
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
-        "~/Projects/cache/.v": "/home/user/.v",
         "~/dotfiles/shell/.zlogin": "/home/user/.zlogin",
         "~/dotfiles/shell/.zlogout": "/home/user/.zlogout",
         "~/dotfiles/shell/.zprezto": "/home/user/.zprezto",
@@ -11,6 +10,7 @@
         "~/dotfiles/shell/.zprofile": "/home/user/.zprofile",
         "~/dotfiles/shell/.zshenv": "/home/user/.zshenv",
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
-        "~/dotfiles/shell/.dircolors": "/home/user/.dircolors"
+        "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
+        "~/Projects/cache/.v": "/home/user/.v"
     }
 }

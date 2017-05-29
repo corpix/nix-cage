@@ -13,9 +13,8 @@
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.stack": "/home/user/.stack",
         "~/Projects/cache/.local": "/home/user/.local",
-        "~/Projects/cache/.gvm": "/home/user/.gvm",
         "~/Projects/cache/.rustup": "/home/user/.rustup",
         "~/Projects/cache/.cargo": "/home/user/.cargo",
-        "~/Projects/cache/.nvm": "/home/user/.nvm"
+        "~/Projects/cache/.v": "/home/user/.v"
     }
 }

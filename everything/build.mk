@@ -5,7 +5,7 @@ everything: $(build)
 		$(version)                                       \
 		$(root)/everything/builder.aci.sh                \
 		$(build)/everything-$(version)-$(os)-$(arch).aci \
-		--base=$(base)
+		--base=$(base_uri)
 	version=$(version)                                       \
 		$(toolbox)/template/format-environ               \
 		--file $(root)/everything/everything.json.tpl    \

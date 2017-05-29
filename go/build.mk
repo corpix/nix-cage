@@ -5,7 +5,7 @@ go: $(build)
 		$(version)                               \
 		$(root)/go/builder.aci.sh                \
 		$(build)/go-$(version)-$(os)-$(arch).aci \
-		--base=$(base)
+		--base=$(base_uri)
 	version=$(version)                               \
 		$(toolbox)/template/format-environ       \
 		--file $(root)/go/go.json.tpl            \

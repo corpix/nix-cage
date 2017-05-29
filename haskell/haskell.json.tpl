@@ -3,7 +3,6 @@
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
-        "~/Projects/cache/.v": "/home/user/.v",
         "~/dotfiles/shell/.zlogin": "/home/user/.zlogin",
         "~/dotfiles/shell/.zlogout": "/home/user/.zlogout",
         "~/dotfiles/shell/.zprezto": "/home/user/.zprezto",
