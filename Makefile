@@ -24,7 +24,7 @@ builder        = sudo              \
 	https_proxy=$(https_proxy) \
 	HTTP_PROXY=$(HTTP_PROXY)   \
 	HTTPS_PROXY=$(HTTPS_PROXY) \
-	$(scripts)/build
+	$(toolbox)/acbuild/acbuild-with
 
 .PHONY: build
 build:: $(build) $(toolbox)
