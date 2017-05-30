@@ -27,7 +27,7 @@ sudo rkt run                                                      \
     --volume=projects,kind=host,source=$HOME/Projects             \
     --volume=emacs,kind=host,source=$HOME/.emacs.d                \
     --set-env=DEMOTE_UID=$(id -u) --set-env=DEMOTE_GID=$(id -g)   \
-    --set-env=TERM=$TERM --net=host --dns=208.67.222.222
+    --set-env=TERM=$TERM --net=host --dns=208.67.222.222 -- Projects/
 ```
 
 Or you could use `devcage` script to run containers. To do this you should have a config file for a container.
@@ -60,8 +60,10 @@ EOF
 
 And start the container:
 
+> Rest of console arguments(after `--`) is passed to the Emacs in the container.
+
 ``` shell
-devcage everything.json
+devcage everything.json -- Projects/
 ```
 
 ## Projects structure

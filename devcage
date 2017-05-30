@@ -109,13 +109,15 @@ def command_from_config(config):
     ]
 
 
-def main(args):
+def main(args, rest=[]):
     with open(args["config"], "r") as stream:
         config = json_unmarshal(stream)
 
+    cage_args = ["--"] + rest if len(rest) > 0 else []
+
     code = run(
         "sudo",
-        command_from_config(config)
+        command_from_config(config) + cage_args
     ).wait()
     if code != 0:
         raise RuntimeError(
@@ -128,8 +130,10 @@ if __name__ == "__main__":
         "config",
         help="Devcage config file path"
     )
+    args, rest = p.parse_known_args()
     main(
         expand_args(
-            p.parse_args().__dict__
-        )
+            args.__dict__
+        ),
+        rest
     )
