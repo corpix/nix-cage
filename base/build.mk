@@ -5,6 +5,6 @@ base: $(build)
 		$(version)                                    \
 		$(root)/base/builder.aci.sh                   \
 		$(base)                                       \
-		--base=corpix.github.io/fedora:25-1.3.1496168457
+		--base=corpix.github.io/fedora:1.9-a9c8d5b
 
 build:: base
