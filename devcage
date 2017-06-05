@@ -117,7 +117,12 @@ def main(args, rest=[]):
 
     code = run(
         "sudo",
-        command_from_config(config) + cage_args
+        [
+            "{}={}".format(k, v)
+            for k, v in environ.items()
+            if k.lower().startswith("http_") or \
+                    k.lower().startswith("https_")
+        ] + command_from_config(config) + cage_args
     ).wait()
     if code != 0:
         raise RuntimeError(
