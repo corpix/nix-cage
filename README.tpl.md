@@ -129,6 +129,12 @@ You can also pass your `~/.emacs` or move this file into `~/.emacs.d/init.el` wh
 
 ## Selinux
 
+Make sure you volumes have correct type:
+
+``` shell
+sudo chcon -Rt svirt_sandbox_file_t ~/Projects
+```
+
 You will need to load a module for selinux because:
 
 > This module targets Fedora linux.
@@ -151,8 +157,3 @@ It is a good idea to specify a dns when running a container. You could use opend
 ``` text
 --dns=208.67.222.222 --dns=208.67.220.220
 ```
-
-
-## Current problems
-
-- Symlinks inside volumes(even if not pointing outside) is not working
