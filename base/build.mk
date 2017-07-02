@@ -1,3 +1,5 @@
+fedora_version ?= 25-1499038497
+
 .PHONY: base
 base: $(build)
 	$(builder)                                            \
@@ -5,6 +7,6 @@ base: $(build)
 		$(version)                                    \
 		$(root)/base/builder.aci.sh                   \
 		$(base)                                       \
-		--base=corpix.github.io/fedora:1.1-c9c3529
+		--base=corpix.github.io/fedora:$(fedora_version)
 
 build:: base
