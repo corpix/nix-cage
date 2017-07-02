@@ -5,7 +5,10 @@ source "$(git rev-parse --show-toplevel)"/scripts/env
 ac run -- sh -c "
    set -e
    $(proxy)
-   dnf install -y --best bison golang
+   # ncurses-compat-libs for gomobile
+   dnf install -y --best \
+       bison golang      \
+       ncurses-compat-libs
    dnf clean all
    rm -rf /tmp/*
 "
