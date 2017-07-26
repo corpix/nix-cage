@@ -14,7 +14,8 @@ ac run -- sh -c "
        openssh-clients openssh-server procps-ng      \
        bind-utils iputils iproute nmap git           \
        aspell aspell-en glibc-locale-source          \
-       python3 hostname 'dnf-command(copr)' gcc-c++
+       python3 hostname 'dnf-command(copr)' gcc-c++  \
+       file autoconf automake libtool
    curl -Ls https://raw.githubusercontent.com/corpix/v/master/v > /usr/bin/v
    chmod +x /usr/bin/v
    mkdir /etc/emacs
