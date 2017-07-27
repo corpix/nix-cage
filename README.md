@@ -23,7 +23,7 @@ To run the container:
 
 ``` shell
 sudo rkt run                                                      \
-    --interactive corpix.github.io/devcage/everything:1.0-8d6c888 \
+    --interactive corpix.github.io/devcage/everything:1.0-d7d0596 \
     --volume=projects,kind=host,source=$HOME/Projects             \
     --volume=emacs,kind=host,source=$HOME/.emacs.d                \
     --set-env=DEMOTE_UID=$(id -u) --set-env=DEMOTE_GID=$(id -g)   \
@@ -36,7 +36,7 @@ Here is a config file for the `rkt run` above:
 
 ``` json
 {
-    "container": "corpix.github.io/devcage/everything:1.0-8d6c888",
+    "container": "corpix.github.io/devcage/everything:1.0-d7d0596",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d"
@@ -49,7 +49,7 @@ Save it to the file somethere:
 ``` shell
 cat <<EOF > everything.json
 {
-    "container": "corpix.github.io/devcage/everything:1.0-8d6c888",
+    "container": "corpix.github.io/devcage/everything:1.0-d7d0596",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d"
