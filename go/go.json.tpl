@@ -11,6 +11,7 @@
         "~/dotfiles/shell/.zshenv": "/home/user/.zshenv",
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
-        "~/Projects/cache/.v": "/home/user/.v"
+        "~/Projects/cache/.v": "/home/user/.v",
+        "~/Projects/config": "/home/user/.config"
     }
 }
