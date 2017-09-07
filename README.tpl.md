@@ -132,7 +132,7 @@ You can also pass your `~/.emacs` or move this file into `~/.emacs.d/init.el` wh
 Make sure you volumes have correct type:
 
 ``` shell
-sudo chcon -Rt svirt_sandbox_file_t ~/Projects
+sudo chcon -R -t container_file_t -r object_r -u system_u ~/Projects
 ```
 
 You will need to load a module for selinux because:
