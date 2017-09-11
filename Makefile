@@ -42,6 +42,8 @@ include rust/build.mk
 include haskell/build.mk
 include go/build.mk
 include javascript/build.mk
+include java/build.mk
+include clojure/build.mk
 include everything/build.mk
 
 .PHONY: all
