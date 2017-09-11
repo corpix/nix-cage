@@ -1,5 +1,5 @@
 {
-    "container": "corpix.github.io/devcage/java:${version}",
+    "container": "corpix.github.io/devcage/clojure:${version}",
     "mountpoints": {
         "~/Projects": "/home/user/Projects",
         "~/.emacs.d": "/home/user/.emacs.d",
@@ -12,6 +12,7 @@
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.v": "/home/user/.v",
+        "~/Projects/cache/.boot": "/home/user/.boot",
         "~/Projects/config": "/home/user/.config"
     }
 }
