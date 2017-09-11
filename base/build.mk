@@ -1,4 +1,4 @@
-fedora_version ?= 26-1501118197
+fedora_version ?= 26-20170911
 
 .PHONY: base
 base: $(build)
