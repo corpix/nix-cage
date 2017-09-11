@@ -12,6 +12,7 @@
         "~/dotfiles/shell/.zshrc": "/home/user/.zshrc",
         "~/dotfiles/shell/.dircolors": "/home/user/.dircolors",
         "~/Projects/cache/.v": "/home/user/.v",
+        "~/Projects/cache/.boot": "/home/user/.boot",
         "~/Projects/config": "/home/user/.config"
     }
 }

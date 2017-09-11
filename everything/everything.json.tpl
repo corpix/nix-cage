@@ -16,6 +16,7 @@
         "~/Projects/cache/.rustup": "/home/user/.rustup",
         "~/Projects/cache/.cargo": "/home/user/.cargo",
         "~/Projects/cache/.v": "/home/user/.v",
+        "~/Projects/cache/.boot": "/home/user/.boot",
         "~/Projects/config": "/home/user/.config"
     }
 }
