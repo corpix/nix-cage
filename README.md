@@ -7,9 +7,12 @@ Development with Emacs in a container.
 
 There are containers for:
 
+- clojure
 - go
 - haskell
+- java
 - javascript
+- rust
 - everything (all containers in one)
 
 All of them are built against a common container which contains Emacs.
