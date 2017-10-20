@@ -183,7 +183,8 @@ def backend_config_flags(backend, config):
 
         return [
             "--ro-bind",  "/",    "/",
-            "--dev-bind", "/dev", "/dev"
+            "--dev-bind", "/dev", "/dev",
+            "--die-with-parent"
         ] + mountpoints_flags(
             list(
                 expand_mountpoints(
