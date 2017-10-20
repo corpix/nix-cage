@@ -11,4 +11,4 @@ go: $(build)
 		--file $(root)/go/go.json.tpl            \
 		--out $(root)/go/go.json
 
-build:: go
+#build:: go

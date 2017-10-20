@@ -11,4 +11,4 @@ javascript: $(build)
 		--file $(root)/javascript/javascript.json.tpl    \
 		--out $(root)/javascript/javascript.json
 
-build:: javascript
+#build:: javascript

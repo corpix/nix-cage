@@ -11,4 +11,4 @@ haskell: $(build)
 		--file $(root)/haskell/haskell.json.tpl       \
 		--out $(root)/haskell/haskell.json
 
-build:: haskell
+#build:: haskell

@@ -11,4 +11,4 @@ rust: $(build)
 		--file $(root)/rust/rust.json.tpl          \
 		--out $(root)/rust/rust.json
 
-build:: rust
+#build:: rust

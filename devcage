@@ -9,12 +9,22 @@ from functools import reduce
 from sys import stdin, stdout, stderr
 from json import load as json_unmarshal, dump as json_marshal
 from pwd import getpwnam
+from string import Template
 
 system_streams = {
     "stdin" : stdin,
     "stdout": stdout,
     "stderr": stderr,
 }
+
+backends = [
+    "rkt",
+    "bwrap"
+]
+privileged_backends = [
+    "rkt"
+]
+default_backend = "bwrap"
 
 def run(executable, arguments, streams=system_streams):
     path = executable
@@ -29,46 +39,21 @@ def run(executable, arguments, streams=system_streams):
 def expand_args(args):
     nargs = args.copy()
 
-    nargs["config"] = expand(args["config"])
+    nargs["config"] = abspath(expand(args["config"]))
     return nargs
 
 def expand(v):
-    return abspath(
+    return Template(
         expanduser(
             v
         )
-    )
+    ).substitute(environ)
+
 
 def identify(v):
     h = sha1()
     h.update(v.encode("utf8"))
     return h.hexdigest()[:7]
-
-def get_mountpoints(config):
-    mountpoints = {}
-    for k, v in config.get("mountpoints", {}).items():
-        mountpoints[expand(k)] = expand(v)
-
-    return mountpoints
-
-def command_from_mountpoints(mountpoints):
-    return list(
-        reduce(
-            lambda acc, v: acc + [
-                s.format(
-                    name=identify(v[0] + " -> " + v[1]),
-                    source=v[0],
-                    target=v[1]
-                )
-                for s in [
-                        "--volume={name},kind=host,source={source}",
-                        "--mount=volume={name},target={target}",
-                ]
-            ],
-            mountpoints.items(),
-            []
-        )
-    )
 
 def get_user(user):
     p = getpwnam(user)
@@ -78,59 +63,220 @@ def get_user(user):
         "gid": p.pw_gid
     }
 
-def command_from_user(user):
-    return [
-        "--set-env=DEMOTE_UID={uid}".format(**user),
-        "--set-env=DEMOTE_GID={gid}".format(**user),
-    ]
+def backend_config_flags(backend, config):
+    backend_config = config.get(backend, {})
 
-def command_from_environ(environ):
-    return [
-        "--set-env=TERM={TERM}".format(**environ),
-    ]
+    def get_mountpoints(config, group):
+        return config.get(
+            "mountpoints",
+            {}
+        ).get(
+            group,
+            []
+        )
 
-def command_from_config(config):
-    return ["rkt"] + config.get(
-        "rktArguments",
-        []
-    ) + ["run"] + [
-        "--interactive",
-        config["container"]
+    def expand_mountpoints(config):
+        for k, v in config:
+            yield (expand(k), expand(v),)
+
+    def expand_environment(environment):
+        res = {}
+        for k, v in environment.items():
+            res[k] = expand(v)
+        return res
+
+    if backend == "rkt":
+        def environment_flags(environ):
+            return [
+                "--set-env={}={}".format(k, v)
+                for k, v in environ.items()
+            ]
+
+        def mountpoints_flags(mountpoints, rw=True):
+            return list(
+                reduce(
+                    lambda acc, v: acc + [
+                        s.format(
+                            name=identify(v[0] + " -> " + v[1]),
+                            source=v[0],
+                            target=v[1],
+                            ro=""
+                            # FIXME: Imagemagick is notification ready,
+                            # otherwise: ",readOnly" if not rw else ""
+                        )
+                        for s in [
+                                "--volume={name},kind=host,source={source}{ro}",
+                                "--mount=volume={name},target={target}",
+                        ]
+                    ],
+                    mountpoints,
+                    []
+                )
+            )
+
+        user = get_user(environ["USER"])
+
+        return ["run"] + [
+            "--interactive",
+            backend_config["container"]
+        ] + mountpoints_flags(
+            list(
+                expand_mountpoints(
+                    get_mountpoints(config, "rw")
+                )
+            ),
+            rw=True
+        ) + mountpoints_flags(
+            list(
+                expand_mountpoints(
+                    get_mountpoints(config, "ro")
+                )
+            ),
+            rw=False
+        ) + environment_flags(
+            expand_environment(
+                config.get("environment", {})
+            )
+        ) + environment_flags(
+            {
+                "DEOMTE_USER": user["user"],
+                "DEMOTE_UID": user["uid"],
+                "DEMOTE_GID": user["gid"],
+                "TERM": environ.get(
+                    "TERM",
+                    "screen-256color"
+                )
+            }
+        ) + [
+            "--dns=208.67.222.222",
+            "--net=host"
+        ]
+
+    if backend == "bwrap":
+        def environment_flags(environ):
+            return list(
+                reduce(
+                    lambda acc, v: acc + v,
+                    [
+                        ["--setenv", k, v]
+                        for k, v in environ.items()
+                    ]
+                )
+            )
+
+        def mountpoints_flags(mountpoints, rw=True):
+            return list(
+                reduce(
+                    lambda acc, v: acc + [
+                        s.format(
+                            name=identify(v[0] + " -> " + v[1]),
+                            source=v[0],
+                            target=v[1],
+                            ro="ro-" if not rw else ""
+                        )
+                        for s in ["--{ro}bind", "{source}", "{target}"]
+                    ],
+                    mountpoints,
+                    []
+                )
+            )
+
+        return [
+            "--ro-bind",  "/",    "/",
+            "--dev-bind", "/dev", "/dev"
+        ] + mountpoints_flags(
+            list(
+                expand_mountpoints(
+                    get_mountpoints(config, "rw")
+                )
+            ),
+            rw=True
+        ) + mountpoints_flags(
+            list(
+                expand_mountpoints(
+                    get_mountpoints(config, "ro")
+                )
+            ),
+            rw=False
+        ) + environment_flags(
+            expand_environment(
+                config.get("environment", {})
+            )
+        ) + environment_flags(
+            {
+                "TERM": environ.get(
+                    "TERM",
+                    "screen-256color"
+                )
+            }
+        ) + [
+            "emacs",
+            "-nw", "-l", "/home/user/.emacs.d/init.el"
+        ]
+
+    return ["--help"]
+
+
+def config_flags(config):
+    backend = config.get(
+        "backend",
+        default_backend
+    )
+
+    return (
+        ["sudo"]
+        if backend in privileged_backends
+        else []
+    ) + [
+        backend
     ] + config.get(
-        "containerArguments",
+        backend,
+        {}
+    ).get(
+        "arguments",
         []
-    ) + command_from_mountpoints(
-        get_mountpoints(config)
-    ) + command_from_user(
-        get_user(environ["USER"])
-    ) + command_from_environ(environ) + [
-        "--dns=208.67.222.222",
-        "--net=host"
-    ]
-
+    ) + backend_config_flags(
+        backend,
+        config
+    )
 
 def main(args, rest=[]):
     with open(args["config"], "r") as stream:
         config = json_unmarshal(stream)
 
-    cage_args = ["--"] + rest if len(rest) > 0 else []
+    config.update(args)
 
-    code = run(
-        "sudo",
-        [
-            "{}={}".format(k, v)
-            for k, v in environ.items()
-            if k.lower().startswith("http_") or \
-                    k.lower().startswith("https_")
-        ] + command_from_config(config) + cage_args
-    ).wait()
+    cage_args = ["--"] + rest if len(rest) > 0 else []
+    commandline = [
+        "{}={}".format(k, v)
+        for k, v in environ.items()
+        if k.lower().startswith("http_") or \
+        k.lower().startswith("https_")
+    ] + config_flags(
+        config
+    ) + cage_args
+
+    command = commandline[0]
+    flags = commandline[1:]
+    code = run(command, flags).wait()
     if code != 0:
         raise RuntimeError(
-            "Rkt exit with non zero code {}".format(code)
+            "Backend {} exit with non zero code {}".format(
+                config.get(
+                    "backend",
+                    args["backend"],
+                ),
+                code
+            )
         )
 
 if __name__ == "__main__":
     p = ArgumentParser()
+    p.add_argument(
+        "--backend",
+        help="Virtualisation backend to use: {}".format(backends),
+        default=default_backend
+    )
     p.add_argument(
         "config",
         help="Devcage config file path"

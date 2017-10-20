@@ -11,4 +11,4 @@ clojure: $(build)
 		--file $(root)/clojure/clojure.json.tpl       \
 		--out $(root)/clojure/clojure.json
 
-build:: clojure
+#build:: clojure

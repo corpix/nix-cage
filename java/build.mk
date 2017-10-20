@@ -11,4 +11,4 @@ java: $(build)
 		--file $(root)/java/java.json.tpl          \
 		--out $(root)/java/java.json
 
-build:: java
+#build:: java
