@@ -182,9 +182,17 @@ def backend_config_flags(backend, config):
             )
 
         return [
-            "--ro-bind",  "/",    "/",
-            "--dev-bind", "/dev", "/dev",
-            "--die-with-parent"
+            "--bind",     "/",        "/",
+            "--dev-bind", "/dev",     "/dev",
+            "--dir",      "/var",
+            "--dir",      "/run",
+            "--dir",      "/tmp",
+            "--unshare-ipc",
+            "--unshare-pid",
+            "--unshare-cgroup",
+            "--unshare-uts",
+            "--die-with-parent",
+            "--hostname", "localhost"
         ] + mountpoints_flags(
             list(
                 expand_mountpoints(

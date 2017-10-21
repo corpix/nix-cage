@@ -4,7 +4,6 @@
     },
     "mountpoints": {
         "rw": [
-            ["/tmp",             "/tmp"],
             ["~/Projects/cache", "~"],
             ["~/Projects",       "~/Projects"],
             ["~/.emacs.d",       "~/.emacs.d"]
@@ -20,7 +19,7 @@
         ]
     },
     "environment": {
-        "PATH":   "$HOME/Projects/bin:$PATH",
+        "PATH":   "$HOME/Projects/bin:/usr/bin:/bin:$PATH",
         "GOPATH": "$HOME/Projects"
     }
 }
