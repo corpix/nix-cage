@@ -21,6 +21,8 @@
     iotop
     iproute
     iputils
+    llvm
+    lld
     libarchive
     lzma
     mc
