@@ -291,9 +291,12 @@ if __name__ == "__main__":
         help="Devcage config file path"
     )
     args, rest = p.parse_known_args()
-    main(
-        expand_args(
-            args.__dict__
-        ),
-        rest
-    )
+    try:
+        main(
+            expand_args(
+                args.__dict__
+            ),
+            rest
+        )
+    except KeyboardInterrupt:
+        pass
