@@ -197,11 +197,18 @@ def backend_config_flags(backend, config):
             )
         ) + environment_flags(
             {
+                # XXX: HOME is required format emacs to work
+                # Or it will complain about mkdir /.emacs.d Permission denied
+                "HOME": environ["HOME"],
+
                 "TERM": environ.get(
                     "TERM",
                     "screen-256color"
                 ),
-                "HOME": environ["HOME"]
+                "SHELL": environ.get(
+                    "SHELL",
+                    ""
+                )
             }
         ) + [
             "emacs",
