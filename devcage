@@ -123,7 +123,7 @@ def backend_config_flags(backend, config):
             )
         ) + environment_flags(
             {
-                "DEOMTE_USER": user["user"],
+                "DEMOTE_USER": user["user"],
                 "DEMOTE_UID": user["uid"],
                 "DEMOTE_GID": user["gid"],
                 "TERM": environ.get(
