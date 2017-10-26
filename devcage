@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
-from os.path import isabs, abspath, expanduser
+from os import execve
+from os.path import isabs, abspath, expanduser, basename
 from shutil import which
 from subprocess import Popen as Subprocess
 from os import environ
@@ -11,12 +12,6 @@ from json import load as json_unmarshal, dump as json_marshal
 from pwd import getpwnam
 from string import Template
 
-system_streams = {
-    "stdin" : stdin,
-    "stdout": stdout,
-    "stderr": stderr,
-}
-
 backends = [
     "rkt",
     "bwrap"
@@ -25,16 +20,6 @@ privileged_backends = [
     "rkt"
 ]
 default_backend = "bwrap"
-
-def run(executable, arguments, streams=system_streams):
-    path = executable
-    if not isabs(executable):
-        path = which(executable)
-
-    return Subprocess(
-        [path] + arguments,
-        **streams
-    )
 
 def expand_args(args):
     nargs = args.copy()
@@ -65,6 +50,7 @@ def get_user(user):
 
 def backend_config_flags(backend, config):
     backend_config = config.get(backend, {})
+    user = get_user(environ["USER"])
 
     def get_mountpoints(config, group):
         return config.get(
@@ -113,8 +99,6 @@ def backend_config_flags(backend, config):
                     []
                 )
             )
-
-        user = get_user(environ["USER"])
 
         return ["run"] + [
             "--interactive",
@@ -182,16 +166,16 @@ def backend_config_flags(backend, config):
             )
 
         return [
-            "--bind",     "/",        "/",
+            "--die-with-parent",
+            "--ro-bind",  "/",        "/",
             "--dev-bind", "/dev",     "/dev",
-            "--dir",      "/var",
-            "--dir",      "/run",
-            "--dir",      "/tmp",
+            "--tmpfs",    "/tmp",
+            "--tmpfs",    "/run/user/{uid}".format(**user),
+            # XXX: This will cause emacs to exit if you press Ctrl-g
+            #"--unshare-pid",
             "--unshare-ipc",
-            "--unshare-pid",
             "--unshare-cgroup",
             "--unshare-uts",
-            "--die-with-parent",
             "--hostname", "localhost"
         ] + mountpoints_flags(
             list(
@@ -216,28 +200,29 @@ def backend_config_flags(backend, config):
                 "TERM": environ.get(
                     "TERM",
                     "screen-256color"
-                )
+                ),
+                "HOME": environ["HOME"]
             }
         ) + [
             "emacs",
-            "-nw", "-l", "/home/user/.emacs.d/init.el"
+            "-nw", "-l", "~/.emacs.d/init.el"
         ]
 
     return ["--help"]
 
 
-def config_flags(config):
+def commandline_from_config(config):
     backend = config.get(
         "backend",
         default_backend
     )
 
     return (
-        ["sudo"]
+        [which("sudo")]
         if backend in privileged_backends
         else []
     ) + [
-        backend
+        which(backend)
     ] + config.get(
         backend,
         {}
@@ -255,32 +240,27 @@ def main(args, rest=[]):
 
     config.update(args)
 
-    cage_args = ["--"] + rest if len(rest) > 0 else []
-    commandline = [
-        "{}={}".format(k, v)
+    commandline = commandline_from_config(config) + \
+                  ["--"]               + \
+                  rest if len(rest) > 0 else []
+
+    command = commandline[0]
+    environment = {
+        k: v
         for k, v in environ.items()
         if k.lower().startswith("http_") or \
         k.lower().startswith("https_")
-    ] + config_flags(
-        config
-    ) + cage_args
+    }
 
-    command = commandline[0]
-    flags = commandline[1:]
-    code = run(command, flags).wait()
-    if code != 0:
-        raise RuntimeError(
-            "Backend {} exit with non zero code {}".format(
-                config.get(
-                    "backend",
-                    args["backend"],
-                ),
-                code
-            )
-        )
+    execve(
+        command,
+        [basename(command)] + commandline[1:] ,
+        environment
+    )
 
 if __name__ == "__main__":
     p = ArgumentParser()
+
     p.add_argument(
         "--backend",
         help="Virtualisation backend to use: {}".format(backends),
@@ -290,13 +270,12 @@ if __name__ == "__main__":
         "config",
         help="Devcage config file path"
     )
+
     args, rest = p.parse_known_args()
-    try:
-        main(
-            expand_args(
-                args.__dict__
-            ),
-            rest
-        )
-    except KeyboardInterrupt:
-        pass
+
+    main(
+        expand_args(
+            args.__dict__
+        ),
+        rest
+    )
