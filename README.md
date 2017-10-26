@@ -1,6 +1,10 @@
 devcage
 --------------
 
+> Current state:
+> This project is moving to NixOS and bwrap(already default backend forex sandboxing) instead of rkt
+> I love rkt, but it requires the `root` access which I(personally) don't want to provide
+
 Development with Emacs in a container.
 
 ## Containers
