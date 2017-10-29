@@ -37,7 +37,6 @@
     tmux
     tree
     unzip
-    v
     wget
     which
   ];
