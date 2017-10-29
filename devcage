@@ -171,6 +171,7 @@ def backend_config_flags(backend, config):
             "--dev-bind", "/dev",     "/dev",
             "--tmpfs",    "/tmp",
             "--tmpfs",    "/run/user/{uid}".format(**user),
+            "--tmpfs",    "/run/media/{user}".format(**user),
             # XXX: This will cause emacs to exit if you press Ctrl-g
             #"--unshare-pid",
             "--unshare-ipc",
