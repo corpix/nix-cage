@@ -5,6 +5,7 @@
     ncurses
     go
     gocode
+    glide
     bison
   ];
 }
