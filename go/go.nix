@@ -5,6 +5,7 @@
     ncurses
     go
     gocode
+    go-bindata
     glide
     bison
   ];
