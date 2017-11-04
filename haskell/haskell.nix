@@ -3,7 +3,6 @@
 {
   environment.systemPackages = with pkgs; [
     stack
-    ghc
     haskellPackages.hlint
     haskellPackages.hindent
     haskellPackages.stylish-haskell
