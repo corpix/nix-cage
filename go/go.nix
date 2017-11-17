@@ -7,6 +7,7 @@
     gocode
     go-bindata
     glide
+    godef
     bison
   ];
 }
