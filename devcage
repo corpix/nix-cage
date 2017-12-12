@@ -1,44 +1,67 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 from argparse import ArgumentParser
 from os import execve
-from os.path import isabs, abspath, expanduser, basename
+from os.path import isabs, abspath, expanduser, basename, realpath
 from shutil import which
-from subprocess import Popen as Subprocess
-from os import environ
-from hashlib import sha1
+from shlex import quote as shell_escape
+from os import environ, sep
+from sys import stderr
 from functools import reduce
-from sys import stdin, stdout, stderr
-from json import load as json_unmarshal, dump as json_marshal
+from json import load as json_unmarshal, dump as json_marshal, dumps as json_marshal_str
 from pwd import getpwnam
 from string import Template
 
-backends = [
-    "rkt",
-    "bwrap"
-]
-privileged_backends = [
-    "rkt"
-]
-default_backend = "bwrap"
+def expand(v, ctx=environ):
+    return Template(expanduser(v)).substitute(ctx)
 
-def expand_args(args):
-    nargs = args.copy()
+def which_binary(v):
+    path = which(v)
+    if path:
+        return realpath(path)
+    return v
 
-    nargs["config"] = abspath(expand(args["config"]))
-    return nargs
-
-def expand(v):
-    return Template(
-        expanduser(
-            v
+def verbose(arguments, v):
+    if arguments["verbose"]:
+        stderr.write(
+            json_marshal_str(
+                v,
+                indent=4
+            ) + "\n"
         )
-    ).substitute(environ)
 
+def split_path(v):
+    buf = ""
+    res = []
 
-def identify(v):
-    h = sha1()
-    h.update(v.encode("utf8"))
-    return h.hexdigest()[:7]
+    for c in v:
+        if c == sep:
+            if len(buf) > 0:
+                res.append(buf)
+                buf = ""
+            res.append(c)
+        else:
+            buf += c
+
+    if len(buf) > 0:
+        res.append(buf)
+
+    return res
+
+def split_mount_suffix(v):
+    suffixes = [
+        "ro",
+        "rw",
+        "dev",
+        "tmpfs"
+    ]
+    for suffix in suffixes:
+        delimited = ":" + suffix
+        if v.endswith(delimited):
+            return (
+                v[:-len(delimited)],
+                suffix,
+            )
+    return (v, None)
 
 def get_user(user):
     p = getpwnam(user)
@@ -48,242 +71,330 @@ def get_user(user):
         "gid": p.pw_gid
     }
 
-def backend_config_flags(backend, config):
-    backend_config = config.get(backend, {})
-    user = get_user(environ["USER"])
-
-    def get_mountpoints(config, group):
-        return config.get(
-            "mountpoints",
-            {}
-        ).get(
-            group,
-            []
+def flags_from_config(config):
+    def environment(environ):
+        return list(
+            reduce(
+                lambda acc, v: acc + v,
+                [
+                    ["--setenv", k, v]
+                    for k, v in environ.items()
+                ]
+            )
         )
 
-    def expand_mountpoints(config):
-        for k, v in config:
-            yield (expand(k), expand(v),)
-
-    def expand_environment(environment):
-        res = {}
-        for k, v in environment.items():
-            res[k] = expand(v)
-        return res
-
-    if backend == "rkt":
-        def environment_flags(environ):
-            return [
-                "--set-env={}={}".format(k, v)
-                for k, v in environ.items()
-            ]
-
-        def mountpoints_flags(mountpoints, rw=True):
-            return list(
-                reduce(
-                    lambda acc, v: acc + [
-                        s.format(
-                            name=identify(v[0] + " -> " + v[1]),
-                            source=v[0],
-                            target=v[1],
-                            ro=""
-                            # FIXME: Imagemagick is notification ready,
-                            # otherwise: ",readOnly" if not rw else ""
-                        )
-                        for s in [
-                                "--volume={name},kind=host,source={source}{ro}",
-                                "--mount=volume={name},target={target}",
-                        ]
-                    ],
-                    mountpoints,
-                    []
-                )
-            )
-
-        return ["run"] + [
-            "--interactive",
-            backend_config["container"]
-        ] + mountpoints_flags(
-            list(
-                expand_mountpoints(
-                    get_mountpoints(config, "rw")
-                )
-            ),
-            rw=True
-        ) + mountpoints_flags(
-            list(
-                expand_mountpoints(
-                    get_mountpoints(config, "ro")
-                )
-            ),
-            rw=False
-        ) + environment_flags(
-            expand_environment(
-                config.get("environment", {})
-            )
-        ) + environment_flags(
-            {
-                "DEMOTE_USER": user["user"],
-                "DEMOTE_UID": user["uid"],
-                "DEMOTE_GID": user["gid"],
-                "TERM": environ.get(
-                    "TERM",
-                    "screen-256color"
-                )
-            }
-        ) + [
-            "--dns=208.67.222.222",
-            "--net=host"
-        ]
-
-    if backend == "bwrap":
-        def environment_flags(environ):
-            return list(
-                reduce(
-                    lambda acc, v: acc + v,
-                    [
-                        ["--setenv", k, v]
-                        for k, v in environ.items()
-                    ]
-                )
-            )
-
-        def mountpoints_flags(mountpoints, rw=True):
-            return list(
-                reduce(
-                    lambda acc, v: acc + [
-                        s.format(
-                            name=identify(v[0] + " -> " + v[1]),
-                            source=v[0],
-                            target=v[1],
-                            ro="ro-" if not rw else ""
-                        )
-                        for s in ["--{ro}bind", "{source}", "{target}"]
-                    ],
-                    mountpoints,
-                    []
-                )
-            )
-
-        return [
-            "--die-with-parent",
-            "--ro-bind",  "/",        "/",
-            "--dev-bind", "/dev",     "/dev",
-            "--tmpfs",    "/tmp",
-            "--tmpfs",    "/run/user/{uid}".format(**user),
-            "--tmpfs",    "/run/media/{user}".format(**user),
-            # XXX: This will cause emacs to exit if you press Ctrl-g
-            #"--unshare-pid",
-            "--unshare-ipc",
-            "--unshare-cgroup",
-            "--unshare-uts",
-            "--hostname", "localhost"
-        ] + mountpoints_flags(
-            list(
-                expand_mountpoints(
-                    get_mountpoints(config, "rw")
-                )
-            ),
-            rw=True
-        ) + mountpoints_flags(
-            list(
-                expand_mountpoints(
-                    get_mountpoints(config, "ro")
-                )
-            ),
-            rw=False
-        ) + environment_flags(
-            expand_environment(
-                config.get("environment", {})
-            )
-        ) + environment_flags(
-            {
-                # XXX: HOME is required format emacs to work
-                # Or it will complain about mkdir /.emacs.d Permission denied
-                "HOME": environ["HOME"],
-
-                "TERM": environ.get(
-                    "TERM",
-                    "screen-256color"
+    return [
+        "--die-with-parent",
+        # XXX: This will cause emacs to exit if you press Ctrl-g
+        #"--unshare-pid",
+        "--unshare-ipc",
+        "--unshare-cgroup",
+        "--unshare-uts",
+    ] + list(
+        reduce(
+            lambda acc, v: acc + v,
+            map(
+                lambda v: (
+                    ["--ro-bind"         ] + list(v[1]) if v[0] == "ro"
+                    else ["--bind"       ] + list(v[1]) if v[0] == "rw"
+                    else ["--dev-bind"   ] + list(v[1]) if v[0] == "dev"
+                    else ["--tmpfs", v[1][1]]           if v[0] == "tmpfs"
+                    else []
                 ),
-                "SHELL": environ.get(
-                    "SHELL",
-                    ""
-                )
-            }
-        ) + [
-            "emacs",
-            "-nw", "-l", "~/.emacs.d/init.el"
+                sorted_mounts(config["mounts"])
+            ),
+            []
+        )
+    ) + (
+        [
+            "--ro-bind",
+            config["arguments"]["entrypoint"],
+            config["arguments"]["entrypoint"],
         ]
-
-    return ["--help"]
-
-
-def commandline_from_config(config):
-    backend = config.get(
-        "backend",
-        default_backend
-    )
-
-    return (
-        [which("sudo")]
-        if backend in privileged_backends
+        if config["arguments"]["entrypoint"]
+        else []
+    )+ list(
+        reduce(
+            lambda acc, kv: acc + ["--setenv"] + list(kv),
+            config["environment"].items(),
+            []
+        )
+    ) + config["arguments"]["bwrap"] + [
+        # XXX: Do not resolve the symlink for nix-shell!
+        # This tool looks on her name(thank you for two hours of wasted time)
+        # /nix/store/2ricrzvjhlaklihi6q97r1sb0z83lfir-nix-1.11.15/bin/nix-shell -> nix-build
+        # If we will use nix-build then we will end up with this error:
+        # variable $src or $srcs should point to the source
+        # > WTF?!!? I just want environment, why do I need this src/srcs?!
+        # > you are using nix-build, not nix-shell, boy
+        which("nix-shell")
+    ] + config["arguments"]["nix-shell"] + (
+        [config["arguments"]["entrypoint"]]
+        if config["arguments"]["entrypoint"]
         else []
     ) + [
-        which(backend)
-    ] + config.get(
-        backend,
-        {}
-    ).get(
-        "arguments",
-        []
-    ) + backend_config_flags(
-        backend,
-        config
+        # XXX: Waaaat? --command is just not working
+        # Why software written in perl is always so buggy?
+        "--run",
+        " ".join(
+            [
+                shell_escape(v)
+                for v in config["arguments"]["exec"]
+            ]
+        ),
+    ]
+
+
+def config_from_file(config, arguments):
+    if not arguments["config"]:
+        return config
+
+    with open(arguments["config"], "r") as stream:
+        c = json_unmarshal(stream)
+        for k, v in c.get("mounts", {}).items():
+            config["mounts"][k] += v
+        config["environment"].update(
+            c.get("environment", {})
+        )
+        config["arguments"].update(
+            c.get("arguments", {})
+        )
+    return config
+
+def config_from_arguments(config, arguments, rest):
+    if arguments["exec"]:
+        config["arguments"]["exec"] = arguments["exec"]
+
+    if arguments["entrypoint"]:
+        config["arguments"]["entrypoint"] = arguments["entrypoint"]
+
+    config["arguments"]["bwrap"] += rest
+
+    for path in arguments["path"]:
+        path, suffix = split_mount_suffix(path)
+        if not suffix:
+            suffix = "rw"
+        if suffix == "tmpfs":
+            config["mounts"][suffix].append(path)
+        else:
+            config["mounts"][suffix].append(
+                (path, path,)
+            )
+    return config
+
+def expand_config(config):
+    for k, v in config["mounts"].items():
+        if k == "tmpfs":
+            config["mounts"][k] = [
+                abspath(expand(v))
+                for v in config["mounts"][k]
+            ]
+        else:
+            config["mounts"][k] = [
+                (
+                    abspath(expand(v[0])),
+                    abspath(expand(v[1])),
+                )
+                for v in config["mounts"][k]
+            ]
+
+    for k, v in config["environment"].items():
+        config["environment"][k] = expand(v)
+
+    v = (
+        config["arguments"]["exec"]
+        if type(config["arguments"]["exec"]) is list
+        else config["arguments"]["exec"].split(" ")
+    )
+    v = [expand(v[0])] + v[1:]
+    if not isabs(v[0]):
+        v[0] = which_binary(v[0])
+    config["arguments"]["exec"] = v
+
+    if config["arguments"]["entrypoint"]:
+        config["arguments"]["entrypoint"] = abspath(
+            expand(config["arguments"]["entrypoint"])
+        )
+
+    return config
+
+
+def expand_arguments(arguments):
+    if arguments["config"]:
+        arguments["config"] = abspath(expand(arguments["config"]))
+
+    if arguments["exec"]:
+        v = (
+            arguments["exec"]
+            if type(arguments["exec"]) is list
+            else arguments["exec"].split(" ")
+        )
+        v = [expand(v[0])] + v[1:]
+        if not isabs(v[0]):
+            v[0] = which_binary(v[0])
+        arguments["exec"] = v
+
+    if arguments["entrypoint"]:
+        arguments["entrypoint"] = abspath(
+            expand(arguments["entrypoint"])
+        )
+
+    arguments["path"] = [
+        (
+            lambda path, suffix: abspath(expand(path)) + (
+                (":" + suffix) if suffix else ""
+            )
+        )(*split_mount_suffix(path))
+        for path in arguments["path"]
+    ]
+
+    return arguments
+
+def sorted_mounts(mounts):
+    ms = []
+    for k, v in mounts.items():
+        for mount in v:
+            if k == "tmpfs":
+                ms.append(
+                    (k, (mount, mount,),)
+                )
+            else:
+                ms.append(
+                    (k, mount,)
+                )
+
+    ws = {}
+    for k1, p1 in enumerate(ms):
+        w = []
+
+        for k2, p2 in enumerate(ms):
+            if k1 == k2:
+                continue
+
+            p1s = split_path(p1[1][1])
+            p2s = split_path(p2[1][1])
+            n = 0
+
+            for v in p2s:
+                if len(p1s) <= n or len(p2s) <= n:
+                    break
+                if v == p1s[n]:
+                    n += 1
+                else:
+                    break
+
+            if len(p1s) > len(p2s):
+                n += 1
+
+            w.append(n)
+
+        ws[p1] = max(w)
+
+    return map(
+        lambda v: v[1],
+        sorted(
+            [(v, k,) for k, v in ws.items()],
+            key=lambda v: v[0]
+        )
     )
 
-def main(args, rest=[]):
-    with open(args["config"], "r") as stream:
-        config = json_unmarshal(stream)
 
-    config.update(args)
+def main(config, arguments, rest=[]):
+    command = which_binary("bwrap")
+    expanded_arguments = expand_arguments(arguments)
+    expanded_config = expand_config(
+        config_from_arguments(
+            config_from_file(
+                config,
+                expanded_arguments
+            ),
+            expanded_arguments,
+            rest
+        )
+    )
 
-    commandline = commandline_from_config(config) + \
-                  ["--"]               + \
-                  rest if len(rest) > 0 else []
+    flags = flags_from_config(expanded_config)
 
-    command = commandline[0]
-    environment = {
-        k: v
-        for k, v in environ.items()
-        if k.lower().startswith("http_") or \
-        k.lower().startswith("https_")
-    }
+    verbose(
+        expanded_arguments,
+        {
+            "arguments": expanded_arguments,
+            "config": expanded_config,
+            "command": command,
+            "flags": flags,
+        }
+    )
 
     execve(
         command,
-        [basename(command)] + commandline[1:] ,
-        environment
+        [basename(command)] + flags,
+        environ
     )
 
 if __name__ == "__main__":
+    user = get_user(environ["USER"])
+    default_config = {
+        "mounts": {
+            "rw":    [], # [(from, to), (from, to), ...]
+            "ro":    [
+                ("/", "/",)
+            ], # [(from, to), (from, to), ...]
+            "dev":   [
+                ("/dev", "/dev",),
+            ], # [(from, to), (from, to), ...]
+            "tmpfs": [
+                "/tmp",
+                "/run/user/{uid}".format(**user),
+                "/run/media/{user}".format(**user),
+            ], # [to, to, ...]
+        },
+        "environment": {
+            "HOME":       environ["HOME"],
+            "TERM":       environ["TERM"],
+            "SHELL":      environ["SHELL"],
+            "NIX_REMOTE": "daemon",
+        },
+        "arguments": {
+            "entrypoint": "",
+            "exec":       ["emacs", "-nw"],
+            "bwrap":      ["--hostname", "localhost"],
+            "nix-shell":  [],
+        }
+    }
+
     p = ArgumentParser()
 
     p.add_argument(
-        "--backend",
-        help="Virtualisation backend to use: {}".format(backends),
-        default=default_backend
+        "path",
+        nargs="+",
+        help=(
+            "One or more directories or files which will be mounted into the sandbox. "
+            "Paths inside sandbox are same as in host system. "
+            "Mounts are RW by default, but you could append ':ro' to the path to mount RO."
+        )
     )
     p.add_argument(
-        "config",
-        help="Devcage config file path"
+        "--config",
+        help="Config file path"
+    )
+    p.add_argument(
+        "--exec",
+        help="Application to execute inside the sandbox"
+    )
+    p.add_argument(
+        "--entrypoint",
+        help="Path to shell.nix file which will be passed to nix-shell"
+    )
+    p.add_argument(
+        "--verbose",
+        help="Verbose mode",
+        action="store_true"
     )
 
-    args, rest = p.parse_known_args()
+    arguments, rest = p.parse_known_args()
 
     main(
-        expand_args(
-            args.__dict__
-        ),
+        default_config,
+        arguments.__dict__,
         rest
     )
