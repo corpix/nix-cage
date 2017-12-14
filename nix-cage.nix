@@ -1,32 +1,30 @@
-{ stdenv, pkgs, fetchFromGitHub }:
-with pkgs;
+with import <nixpkgs> {};
 python36Packages.buildPythonApplication {
 
-  name = "devcage";
+  name = "nix-cage";
 
   src = fetchFromGitHub {
     owner  = "corpix";
-    repo   = "devcage";
-    rev    = "11541a82fe291f5d59e7fac5116c36991208d31b";
-    sha256 = "072xhpra24hmy4l8jpgsfyrk4ayc9w85rh15pxy1d04sw3p67x8x";
+    repo   = "nix-cage";
+    rev    = "b56a3d4ba9ee589fbad304df1ec901e307fc0e3b";
+    sha256 = "1vhkshg84y2vxgfwc2mdb13zx39nyf8j6aq2hkpglmxsb9x76l4d";
   };
 
   builder = builtins.toFile "builder.sh" ''
     source $stdenv/setup
     set -e
 
-    mkdir -p $out/{nix,bin}
-    cp       $src/*.nix       $out/nix
-    cp       $src/devcage     $out/bin
-    chmod +x $out/bin/devcage
+    mkdir -p $out/bin
+    cp       $src/nix-cage    $out/bin
+    chmod +x $out/bin/nix-cage
   '';
 
   meta = {
-    homepage = https://github.com/corpix/devcage;
-    description = "Sandboxed development environments";
+    homepage = https://github.com/corpix/nix-cage;
+    description = "Sandboxed environments with nix-shell";
 
     longDescription = ''
-      Sandboxed development environments with bwrap, nix-shell and emacs
+      Sandboxed environments with bwrap and nix-shell
     '';
 
     license = stdenv.lib.licenses.mit;
