@@ -1,7 +1,7 @@
 with import <nixpkgs> {};
 stdenv.mkDerivation {
-  name = "nix-cage-shell";
+  name = "devcage-database-shell";
   buildInputs = [
-    python36
+    influxdb
   ];
 }

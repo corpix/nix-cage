@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
 from os import execve
-from os.path import isabs, abspath, expanduser, basename, realpath
+from os.path import isabs, abspath, expanduser, basename, realpath, exists
 from shutil import which
 from shlex import quote as shell_escape
 from os import environ, sep
@@ -11,22 +11,32 @@ from json import load as json_unmarshal, dump as json_marshal, dumps as json_mar
 from pwd import getpwnam
 from string import Template
 
+mount_suffixes = [
+    "ro",
+    "rw",
+    "dev",
+    "tmpfs"
+]
+
 def expand(v, ctx=environ):
     return Template(expanduser(v)).substitute(ctx)
 
-def which_binary(v):
+def realpathwhich(v):
     path = which(v)
     if path:
         return realpath(path)
     return v
 
-def verbose(arguments, v):
+def json_marshal_pretty_str(v):
+    return json_marshal_str(
+        v,
+        indent=4
+    )
+
+def log(arguments, v):
     if arguments["verbose"]:
         stderr.write(
-            json_marshal_str(
-                v,
-                indent=4
-            ) + "\n"
+            json_marshal_pretty_str(v) + "\n"
         )
 
 def split_path(v):
@@ -48,13 +58,7 @@ def split_path(v):
     return res
 
 def split_mount_suffix(v):
-    suffixes = [
-        "ro",
-        "rw",
-        "dev",
-        "tmpfs"
-    ]
-    for suffix in suffixes:
+    for suffix in mount_suffixes:
         delimited = ":" + suffix
         if v.endswith(delimited):
             return (
@@ -85,7 +89,8 @@ def flags_from_config(config):
 
     return [
         "--die-with-parent",
-        # XXX: This will cause emacs to exit if you press Ctrl-g
+        # XXX: This will cause emacs(and probably some other apps)
+        # to exit if you press Ctrl-g
         #"--unshare-pid",
         "--unshare-ipc",
         "--unshare-cgroup",
@@ -95,10 +100,10 @@ def flags_from_config(config):
             lambda acc, v: acc + v,
             map(
                 lambda v: (
-                    ["--ro-bind"         ] + list(v[1]) if v[0] == "ro"
-                    else ["--bind"       ] + list(v[1]) if v[0] == "rw"
-                    else ["--dev-bind"   ] + list(v[1]) if v[0] == "dev"
-                    else ["--tmpfs", v[1][1]]           if v[0] == "tmpfs"
+                    ["--ro-bind"            ] + list(v[1]) if v[0] == "ro"
+                    else ["--bind"          ] + list(v[1]) if v[0] == "rw"
+                    else ["--dev-bind"      ] + list(v[1]) if v[0] == "dev"
+                    else ["--tmpfs", v[1][1]]              if v[0] == "tmpfs"
                     else []
                 ),
                 sorted_mounts(config["mounts"])
@@ -134,6 +139,7 @@ def flags_from_config(config):
         else []
     ) + [
         # XXX: Waaaat? --command is just not working
+        # (or am I understand it's purpose incorrectly?)
         # Why software written in perl is always so buggy?
         "--run",
         " ".join(
@@ -144,9 +150,8 @@ def flags_from_config(config):
         ),
     ]
 
-
 def config_from_file(config, arguments):
-    if not arguments["config"]:
+    if not arguments["config"] or not exists(arguments["config"]):
         return config
 
     with open(arguments["config"], "r") as stream:
@@ -208,7 +213,7 @@ def expand_config(config):
     )
     v = [expand(v[0])] + v[1:]
     if not isabs(v[0]):
-        v[0] = which_binary(v[0])
+        v[0] = realpathwhich(v[0])
     config["arguments"]["exec"] = v
 
     if config["arguments"]["entrypoint"]:
@@ -231,7 +236,7 @@ def expand_arguments(arguments):
         )
         v = [expand(v[0])] + v[1:]
         if not isabs(v[0]):
-            v[0] = which_binary(v[0])
+            v[0] = realpathwhich(v[0])
         arguments["exec"] = v
 
     if arguments["entrypoint"]:
@@ -300,7 +305,13 @@ def sorted_mounts(mounts):
 
 
 def main(config, arguments, rest=[]):
-    command = which_binary("bwrap")
+    if arguments["show_default_config"]:
+        print(
+            json_marshal_pretty_str(config)
+        )
+        return
+
+    command = realpathwhich("bwrap")
     expanded_arguments = expand_arguments(arguments)
     expanded_config = expand_config(
         config_from_arguments(
@@ -315,7 +326,7 @@ def main(config, arguments, rest=[]):
 
     flags = flags_from_config(expanded_config)
 
-    verbose(
+    log(
         expanded_arguments,
         {
             "arguments": expanded_arguments,
@@ -356,38 +367,52 @@ if __name__ == "__main__":
         },
         "arguments": {
             "entrypoint": "",
-            "exec":       ["emacs", "-nw"],
+            "exec":       [],
             "bwrap":      ["--hostname", "localhost"],
             "nix-shell":  [],
         }
     }
 
-    p = ArgumentParser()
+    p = ArgumentParser(
+        description="Nix-cage, sandboxed environments with nix-shell"
+    )
 
     p.add_argument(
         "path",
-        nargs="+",
+        nargs="*",
         help=(
             "One or more directories or files which will be mounted into the sandbox. "
             "Paths inside sandbox are same as in host system. "
-            "Mounts are RW by default, but you could append ':ro' to the path to mount RO."
+            "Mounts are read/write by default, but you could change this by appending one "
+            "of {} suffixes to the path.".format(
+                "|".join([":" + v for v in mount_suffixes])
+            )
         )
     )
     p.add_argument(
         "--config",
-        help="Config file path"
+        help="Config file path, by default it will read JSON config from current directory.",
+        default="./nix-cage.json"
     )
     p.add_argument(
         "--exec",
-        help="Application to execute inside the sandbox"
+        help="Application to execute inside the sandbox, by default it is you $SHELL env variable.",
+        default=environ["SHELL"]
     )
     p.add_argument(
         "--entrypoint",
-        help="Path to shell.nix file which will be passed to nix-shell"
+        help="Path to shell.nix file which will be passed to nix-shell, by default it is shell.nix from current directory.",
+        default="./shell.nix"
     )
     p.add_argument(
+        "--show-default-config",
+        help="Dumps a default config in JSON.",
+        action="store_true"
+    )
+    p.add_argument(
+        "-v",
         "--verbose",
-        help="Verbose mode",
+        help="Verbose mode.",
         action="store_true"
     )
 

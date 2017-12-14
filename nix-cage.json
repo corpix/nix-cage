@@ -1,0 +1,22 @@
+{
+    "mounts": {
+        "rw": [
+            ["~/.emacs.d", "~/.emacs.d"],
+            [".",          "."]
+        ],
+        "ro": [
+            ["~/.bashrc",        "~/.bashrc"],
+            ["~/.profile",       "~/.profile"],
+            ["~/.config/fish",   "~/.config/fish"],
+            ["~/.config/xonsh",  "~/.config/xonsh"],
+            ["~/.xonshrc",       "~/.xonshrc"],
+            ["~/.gitconfig",     "~/.gitconfig"]
+        ],
+        "tmpfs": [
+            "~"
+        ]
+    },
+    "environment": {
+        "TERM": "screen-256color"
+    }
+}
