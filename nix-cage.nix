@@ -3,6 +3,8 @@ python36Packages.buildPythonApplication {
 
   name = "nix-cage";
 
+  buildInputs = [ bubblewrap ];
+
   src = fetchFromGitHub {
     owner  = "corpix";
     repo   = "nix-cage";
