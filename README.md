@@ -1,7 +1,7 @@
 nix-cage
 --------------
 
-Sandboxed environments with `bwrap`, `nix-shell` and `emacs`.
+Sandboxed environments with `bwrap` and `nix-shell`.
 
 ## Requirements
 
