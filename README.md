@@ -19,20 +19,21 @@ First of all we need to create a `nix-cage` configuration in the root of the
 project repository in `nix-cage.json`. This configuration will be read when you
 start `nix-cage` in this repository:
 
+> You could also use `["~/.cage-profile", "~/.profile"]` instead of `"~/.profile"`
+> to customize the mount direction for `ro` and `rw`.
+> `[from, to]` format is pointless for other types of mounts.
+
 ``` json
 {
     "mounts": {
         "rw": [
-            ["~/.emacs.d", "~/.emacs.d"],
-            [".",          "."]
+            "~/.emacs.d",
+            "."
         ],
         "ro": [
-            ["~/.bashrc",        "~/.bashrc"],
-            ["~/.profile",       "~/.profile"],
-            ["~/.config/fish",   "~/.config/fish"],
-            ["~/.config/xonsh",  "~/.config/xonsh"],
-            ["~/.xonshrc",       "~/.xonshrc"],
-            ["~/.gitconfig",     "~/.gitconfig"]
+            "~/.bashrc",
+            "~/.profile",
+            "~/.gitconfig"
         ],
         "tmpfs": [
             "~"
@@ -200,18 +201,8 @@ $ ./nix-cage --show-default-config
 {
     "mounts": {
         "rw": [],
-        "ro": [
-            [
-                "/",
-                "/"
-            ]
-        ],
-        "dev": [
-            [
-                "/dev",
-                "/dev"
-            ]
-        ],
+        "ro": ["/"],
+        "dev": ["/dev"],
         "tmpfs": [
             "/tmp",
             "/run/user/1001",

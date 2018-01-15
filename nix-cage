@@ -184,19 +184,15 @@ def config_from_arguments(config, arguments, rest):
 
 def expand_config(config):
     for k, v in config["mounts"].items():
-        if k == "tmpfs":
-            config["mounts"][k] = [
-                abspath(expand(v))
-                for v in config["mounts"][k]
-            ]
-        else:
-            config["mounts"][k] = [
-                (
+        config["mounts"][k] = [
+            (
+                lambda v: (
                     abspath(expand(v[0])),
                     abspath(expand(v[1])),
                 )
-                for v in config["mounts"][k]
-            ]
+            )((v, v) if type(v) is str else v)
+            for v in config["mounts"][k]
+        ]
 
     for k, v in config["environment"].items():
         config["environment"][k] = expand(v)
@@ -254,14 +250,9 @@ def sorted_mounts(mounts):
     ms = []
     for k, v in mounts.items():
         for mount in v:
-            if k == "tmpfs":
-                ms.append(
-                    (k, (mount, mount,),)
-                )
-            else:
-                ms.append(
-                    (k, mount,)
-                )
+            ms.append(
+                (k, mount,)
+            )
 
     ws = {}
     for k1, p1 in enumerate(ms):
@@ -341,13 +332,13 @@ if __name__ == "__main__":
     user = get_user(environ["USER"])
     default_config = {
         "mounts": {
-            "rw":    [], # [(from, to), (from, to), ...]
+            "rw":    [], # [(from, to), (from, to), ...] | [to, to, ...]
             "ro":    [
                 ("/", "/",)
-            ], # [(from, to), (from, to), ...]
+            ], # [(from, to), (from, to), ...] | [to, to, ...]
             "dev":   [
                 ("/dev", "/dev",),
-            ], # [(from, to), (from, to), ...]
+            ], # [(from, to), (from, to), ...] | [to, to, ...]
             "tmpfs": [
                 "/tmp",
                 "/run/user/{uid}".format(**user),

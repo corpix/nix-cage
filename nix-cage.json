@@ -1,16 +1,16 @@
 {
     "mounts": {
         "rw": [
-            ["~/.emacs.d", "~/.emacs.d"],
-            [".",          "."]
+            "~/.emacs.d",
+            "."
         ],
         "ro": [
-            ["~/.bashrc",        "~/.bashrc"],
-            ["~/.profile",       "~/.profile"],
-            ["~/.config/fish",   "~/.config/fish"],
-            ["~/.config/xonsh",  "~/.config/xonsh"],
-            ["~/.xonshrc",       "~/.xonshrc"],
-            ["~/.gitconfig",     "~/.gitconfig"]
+            "~/.bashrc",
+            "~/.profile",
+            "~/.config/fish",
+            "~/.config/xonsh",
+            "~/.xonshrc",
+            "~/.gitconfig"
         ],
         "tmpfs": [
             "~"
