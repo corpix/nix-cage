@@ -361,8 +361,8 @@ if __name__ == "__main__":
             "NIX_REMOTE": "daemon",
         },
         "arguments": {
-            "entrypoint": "",
-            "exec":       [],
+            "entrypoint": "shell.nix",
+            "exec":       [environ["SHELL"]],
             "bwrap":      ["--hostname", "localhost"],
             "nix-shell":  [],
         }
@@ -391,13 +391,11 @@ if __name__ == "__main__":
     )
     p.add_argument(
         "--exec",
-        help="Application to execute inside the sandbox, by default it is you $SHELL env variable.",
-        default=environ["SHELL"]
+        help="Application to execute inside the sandbox, by default it is you $SHELL env variable."
     )
     p.add_argument(
         "--entrypoint",
-        help="Path to shell.nix file which will be passed to nix-shell, by default it is shell.nix from current directory.",
-        default="./shell.nix"
+        help="Path to shell.nix file which will be passed to nix-shell, by default it is shell.nix from current directory."
     )
     p.add_argument(
         "--show-default-config",
