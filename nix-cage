@@ -113,15 +113,7 @@ def flags_from_config(config):
             ),
             []
         )
-    ) + (
-        [
-            "--ro-bind",
-            config["arguments"]["entrypoint"],
-            config["arguments"]["entrypoint"],
-        ]
-        if config["arguments"]["entrypoint"]
-        else []
-    )+ list(
+    ) + list(
         reduce(
             lambda acc, kv: acc + ["--setenv"] + list(kv),
             config["environment"].items(),
