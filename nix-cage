@@ -10,6 +10,7 @@ from functools import reduce
 from json import load as json_unmarshal, dump as json_marshal, dumps as json_marshal_str
 from pwd import getpwnam
 from string import Template
+from collections import defaultdict
 
 mount_suffixes = [
     "ro",
@@ -19,7 +20,9 @@ mount_suffixes = [
 ]
 
 def expand(v, ctx=environ):
-    return Template(expanduser(v)).substitute(ctx)
+    return Template(expanduser(v)).substitute(
+        defaultdict(str, ctx)
+    )
 
 def realpathwhich(v):
     path = which(v)
