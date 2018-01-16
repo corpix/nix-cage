@@ -1,4 +1,2 @@
-*.aci
-/build
-/.acbuild
 .tern-port
+result
