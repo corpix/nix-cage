@@ -8,8 +8,8 @@ python36Packages.buildPythonApplication {
   src = fetchFromGitHub {
     owner  = "corpix";
     repo   = "nix-cage";
-    rev    = "dc9f911d3bff2a6ec0c5049bdae72db053f4207c";
-    sha256 = "1vsfbp7qkfq28zwj539gayh3cn3gzfgzvkg60jdm0zj5rdanb4is";
+    rev    = "a731efaabcb67a4e9db933f452b7681229d64baa";
+    sha256 = "1fn4wx6pjmy899qjg7nq0sm66ky3ll69mdica0h7577sgsldm9cm";
   };
 
   builder = builtins.toFile "builder.sh" ''
