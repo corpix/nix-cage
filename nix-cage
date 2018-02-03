@@ -333,17 +333,18 @@ if __name__ == "__main__":
     default_config = {
         "mounts": {
             "rw":    [], # [(from, to), (from, to), ...] | [to, to, ...]
-            "ro":    [
-                ("/", "/",)
-            ], # [(from, to), (from, to), ...] | [to, to, ...]
-            "dev":   [
-                ("/dev", "/dev",),
-            ], # [(from, to), (from, to), ...] | [to, to, ...]
-            "tmpfs": [
-                "/tmp",
-                "/run/user/{uid}".format(**user),
-                "/run/media/{user}".format(**user),
-            ], # [to, to, ...]
+            "ro":    ["/"], # [(from, to), (from, to), ...] | [to, to, ...]
+            "dev":   ["/dev"], # [(from, to), (from, to), ...] | [to, to, ...]
+            "tmpfs": list(
+                filter(
+                    exists,
+                    [
+                        "/tmp",
+                        "/run/user/{uid}".format(**user),
+                        "/run/media/{user}".format(**user)
+                    ]
+                )
+            ), # [to, to, ...]
         },
         "environment": {
             "HOME":       environ["HOME"],
