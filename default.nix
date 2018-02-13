@@ -3,7 +3,7 @@ stdenv.mkDerivation rec {
 
   name = "nix-cage";
 
-  nativeBuildInputs = [ makeWrapper ];
+  buildInputs = [ python36 bubblewrap nix ];
 
   src = fetchFromGitHub {
     owner  = "corpix";
@@ -12,6 +12,10 @@ stdenv.mkDerivation rec {
     sha256 = "1fn4wx6pjmy899qjg7nq0sm66ky3ll69mdica0h7577sgsldm9cm";
   };
 
+  buildPhase = ''
+    patchShebangs .
+  '';
+
   installPhase = ''
     source $stdenv/setup
     set -e
@@ -19,12 +23,6 @@ stdenv.mkDerivation rec {
     mkdir -p $out/bin
     cp       $src/${name}    $out/bin
     chmod +x $out/bin/${name}
-
-    wrapProgram $out/bin/${name} --prefix PATH : ${stdenv.lib.makeBinPath [
-      python36
-      bubblewrap
-      nix
-    ]}
   '';
 
   meta = {
