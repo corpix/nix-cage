@@ -90,15 +90,7 @@ def flags_from_config(config):
             )
         )
 
-    return [
-        "--die-with-parent",
-        # XXX: This will cause emacs(and probably some other apps)
-        # to exit if you press Ctrl-g
-        #"--unshare-pid",
-        "--unshare-ipc",
-        "--unshare-cgroup",
-        "--unshare-uts",
-    ] + list(
+    return list(
         reduce(
             lambda acc, v: acc + v,
             map(
@@ -355,7 +347,16 @@ if __name__ == "__main__":
         "arguments": {
             "entrypoint": "shell.nix",
             "exec":       [environ["SHELL"]],
-            "bwrap":      ["--hostname", "localhost"],
+            "bwrap":      [
+                "--die-with-parent",
+                # XXX: This will cause emacs(and probably some other apps)
+                # to exit if you press Ctrl-g
+                #"--unshare-pid",
+                "--unshare-ipc",
+                "--unshare-cgroup",
+                "--unshare-uts",
+                "--hostname", "localhost"
+            ],
             "nix-shell":  [],
         }
     }
