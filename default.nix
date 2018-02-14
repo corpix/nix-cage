@@ -9,8 +9,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner  = "corpix";
     repo   = name;
-    rev    = "a731efaabcb67a4e9db933f452b7681229d64baa";
-    sha256 = "1fn4wx6pjmy899qjg7nq0sm66ky3ll69mdica0h7577sgsldm9cm";
+    rev    = "53b20b9c2075860455b386263a546f27560fd344";
+    sha256 = "1d531qfpc7cfijv7hz78qp0grwm857cf9rbsc977a5wpn8jmlia8";
   };
 
   buildPhase = ''
