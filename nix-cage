@@ -324,7 +324,7 @@ if __name__ == "__main__":
     user = get_user(environ["USER"])
     default_config = {
         "mounts": {
-            "rw":    [], # [(from, to), (from, to), ...] | [to, to, ...]
+            "rw":    ["."], # [(from, to), (from, to), ...] | [to, to, ...]
             "ro":    ["/"], # [(from, to), (from, to), ...] | [to, to, ...]
             "dev":   ["/dev"], # [(from, to), (from, to), ...] | [to, to, ...]
             "tmpfs": list(

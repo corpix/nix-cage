@@ -6,12 +6,7 @@ stdenv.mkDerivation rec {
   buildInputs = [ python36 bubblewrap nix ];
   nativeBuildInputs = [ makeWrapper ];
 
-  src = fetchFromGitHub {
-    owner  = "corpix";
-    repo   = name;
-    rev    = "53b20b9c2075860455b386263a546f27560fd344";
-    sha256 = "1d531qfpc7cfijv7hz78qp0grwm857cf9rbsc977a5wpn8jmlia8";
-  };
+  src = ./.;
 
   buildPhase = ''
     patchShebangs .
