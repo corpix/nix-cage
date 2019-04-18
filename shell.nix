@@ -11,5 +11,6 @@ stdenv.mkDerivation {
     python3
     git
     gnumake
+    bwrap
   ];
 }
