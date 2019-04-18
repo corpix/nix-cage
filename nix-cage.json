@@ -3,5 +3,6 @@
         "rw": [".", "~/.emacs.d"],
         "ro": ["~/.gitconfig"],
         "tmpfs": ["~"]
-    }
+    },
+    "arguments": {"nix-shell": ["--pure"]}
 }
