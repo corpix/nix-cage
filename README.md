@@ -240,3 +240,7 @@ How default config merged with user providen config/arguments?
 You could see the merged configuration(and other things) if you run `nix-cage` with `-v` or `--verbose` flag.
 
 That's all, folks :) I hope working with this tool will be easy for you, if not - create an issue or send me a PR!
+
+## License
+
+[Unlicense](https://unlicense.org/)
