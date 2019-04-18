@@ -317,7 +317,7 @@ def main(config, arguments, rest=[]):
     execve(
         command,
         [basename(command)] + flags,
-        environ
+        environ or {}
     )
 
 if __name__ == "__main__":
