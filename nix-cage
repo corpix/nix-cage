@@ -357,7 +357,7 @@ if __name__ == "__main__":
                 "--unshare-uts",
                 "--hostname", "localhost"
             ],
-            "nix-shell":  [],
+            "nix-shell": ["--pure"],
         }
     }
 
