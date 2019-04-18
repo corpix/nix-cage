@@ -128,11 +128,11 @@ def flags_from_config(config):
         # XXX: Waaaat? --command is just not working
         # (or am I understand it's purpose incorrectly?)
         # Why software written in perl is always so buggy?
-        "--run",
+        "--command",
         " ".join(
             [
                 shell_escape(v)
-                for v in config["arguments"]["exec"]
+                for v in config["arguments"]["command"]
             ]
         ),
     ]
@@ -154,8 +154,8 @@ def config_from_file(config, arguments):
     return config
 
 def config_from_arguments(config, arguments, rest):
-    if arguments["exec"]:
-        config["arguments"]["exec"] = arguments["exec"]
+    if arguments["command"]:
+        config["arguments"]["command"] = arguments["command"]
 
     if arguments["entrypoint"]:
         config["arguments"]["entrypoint"] = arguments["entrypoint"]
@@ -190,14 +190,14 @@ def expand_config(config):
         config["environment"][k] = expand(v)
 
     v = (
-        config["arguments"]["exec"]
-        if type(config["arguments"]["exec"]) is list
-        else config["arguments"]["exec"].split(" ")
+        config["arguments"]["command"]
+        if type(config["arguments"]["command"]) is list
+        else config["arguments"]["command"].split(" ")
     )
     v = [expand(v[0])] + v[1:]
     if not isabs(v[0]):
         v[0] = realpathwhich(v[0])
-    config["arguments"]["exec"] = v
+    config["arguments"]["command"] = v
 
     if config["arguments"]["entrypoint"]:
         config["arguments"]["entrypoint"] = abspath(
@@ -211,16 +211,16 @@ def expand_arguments(arguments):
     if arguments["config"]:
         arguments["config"] = abspath(expand(arguments["config"]))
 
-    if arguments["exec"]:
+    if arguments["command"]:
         v = (
-            arguments["exec"]
-            if type(arguments["exec"]) is list
-            else arguments["exec"].split(" ")
+            arguments["command"]
+            if type(arguments["command"]) is list
+            else arguments["command"].split(" ")
         )
         v = [expand(v[0])] + v[1:]
         if not isabs(v[0]):
             v[0] = realpathwhich(v[0])
-        arguments["exec"] = v
+        arguments["command"] = v
 
     if arguments["entrypoint"]:
         arguments["entrypoint"] = abspath(
@@ -346,7 +346,7 @@ if __name__ == "__main__":
         },
         "arguments": {
             "entrypoint": "shell.nix",
-            "exec":       [environ["SHELL"]],
+            "command":    [environ["SHELL"]],
             "bwrap":      [
                 "--die-with-parent",
                 # XXX: This will cause emacs(and probably some other apps)
@@ -383,8 +383,8 @@ if __name__ == "__main__":
         default="./nix-cage.json"
     )
     p.add_argument(
-        "--exec",
-        help="Application to execute inside the sandbox, by default it is you $SHELL env variable."
+        "--command",
+        help="Command to execute inside the sandbox"
     )
     p.add_argument(
         "--entrypoint",
