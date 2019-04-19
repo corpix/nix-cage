@@ -1,3 +1,5 @@
 language: nix
 
-script: nix-shell --command '$(nix-build)/bin/nix-cage --command ls'
+script: |
+    mkdir -p ~/.emacs.d/hello
+    nix-shell --command '$(nix-build)/bin/nix-cage --command "ls ~/.emacs.d/hello"'
