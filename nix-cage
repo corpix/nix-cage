@@ -48,7 +48,7 @@ def get_default_config():
         },
         "arguments": {
             "entrypoint": "shell.nix",
-            "command":    [environ["SHELL"]],
+            "command":    environ["SHELL"],
             "bwrap":      [
                 "--die-with-parent",
                 "--unshare-ipc",
@@ -179,8 +179,7 @@ def make_command(config):
     bwrap_flags = config["arguments"]["bwrap"]
     shell = [which("nix-shell")]
     shell_flags = config["arguments"]["nix-shell"] + [
-        "--command",
-        " ".join([shell_escape(v) for v in config["arguments"]["command"]])
+        "--command", config["arguments"]["command"]
     ]
 
     return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
@@ -214,12 +213,6 @@ def load_config(config, arguments, rest):
         ]
     for k, v in config["environment"].items():
         config["environment"][k] = expand(v)
-
-    cmd = config["arguments"]["command"]
-    cmd = [expand(cmd[0])] + cmd[1:]
-    if not isabs(cmd[0]):
-        cmd[0] = realpathwhich(cmd[0])
-    config["arguments"]["command"] = cmd
 
     return config
 
