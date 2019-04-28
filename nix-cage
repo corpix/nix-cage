@@ -20,8 +20,8 @@ mount_suffixes = [
 ]
 
 def get_default_config():
-    user = get_user(environ["USER"])
     return {
+        "mode": "expand", # or replace all dictionary values
         "mounts": {
             "rw":    ["."], # [(from, to), (from, to), ...] | [to, to, ...]
             "ro":    ["/"], # [(from, to), (from, to), ...] | [to, to, ...]
@@ -33,9 +33,9 @@ def get_default_config():
                         "/tmp",
                         "/home",
                         "/run/user",
-                        "/run/user/{uid}".format(**user),
+                        "/run/user/{UID}".format(**environ),
                         "/run/media",
-                        "/run/media/{user}".format(**user)
+                        "/run/media/{USER}".format(**environ)
                     ]
                 )
             ), # [to, to, ...]
@@ -87,12 +87,14 @@ def split_path(v):
 
     return res
 
-def merge(source, destination):
+def merge(source, destination, mode="expand"):
+    if not mode in set(["expand", "replace"]):
+        raise RuntimeError("unsupported mode {}, it could be expand or replace".format(mode))
     for key, value in source.items():
         if isinstance(value, dict):
             node = destination.setdefault(key, {})
-            merge(value, node)
-        elif isinstance(value, list):
+            merge(value, node, mode=mode)
+        elif isinstance(value, list) and mode == "expand":
             destination[key] = value + destination.get(key, [])
         else:
             destination[key] = value
@@ -187,7 +189,8 @@ def make_command(config):
 def load_config(config, arguments, rest):
     if exists(arguments["config"]):
         with open(arguments["config"], "r") as stream:
-            config = merge(json_unmarshal(stream), config)
+            overlay_config = json_unmarshal(stream)
+            config = merge(overlay_config, config, mode=overlay_config.get("mode", config["mode"]))
 
     ##
 
@@ -217,6 +220,10 @@ def load_config(config, arguments, rest):
     return config
 
 def main(arguments, rest=[]):
+    user = get_user(environ["USER"])
+    environ["UID"] = str(user["uid"])
+    environ["GID"] = str(user["gid"])
+
     config = load_config(get_default_config(), arguments, rest)
 
     if arguments["show_config"]:
