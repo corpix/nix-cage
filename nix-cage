@@ -47,9 +47,8 @@ def get_default_config():
             "NIX_REMOTE": "daemon",
         },
         "arguments": {
-            "entrypoint": "shell.nix",
-            "command":    environ["SHELL"],
-            "bwrap":      [
+            "command": environ["SHELL"],
+            "bwrap": [
                 "--die-with-parent",
                 "--unshare-ipc",
                 "--unshare-cgroup",
@@ -179,10 +178,14 @@ def make_command(config):
                       config["environment"].items(), []))
 
     bwrap_flags = config["arguments"]["bwrap"]
-    shell = [which("nix-shell")]
-    shell_flags = config["arguments"]["nix-shell"] + [
-        "--command", config["arguments"]["command"]
-    ]
+    if exists("shell.nix"):
+        shell = [which("nix-shell")]
+        shell_flags = config["arguments"]["nix-shell"] + [
+            "--command", config["arguments"]["command"]
+        ]
+    else:
+        shell = [which(environ.get("SHELL", "bash"))]
+        shell_flags = []
 
     return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
 
