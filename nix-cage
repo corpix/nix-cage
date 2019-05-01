@@ -185,7 +185,7 @@ def make_command(config):
         ]
     else:
         shell = [which(environ.get("SHELL", "bash"))]
-        shell_flags = []
+        shell_flags = ["-c", config["arguments"]["command"]] if config["arguments"]["command"] else []
 
     return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
 
