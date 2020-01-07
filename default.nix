@@ -1,11 +1,8 @@
-with import <nixpkgs> {};
-stdenv.mkDerivation rec {
-
+{ pkgs ? import <nixpkgs> {}, ... }:
+with pkgs; stdenv.mkDerivation rec {
   name = "nix-cage";
-
   buildInputs = [ python36 bubblewrap nix ];
   nativeBuildInputs = [ makeWrapper ];
-
   src = ./.;
 
   buildPhase = ''
@@ -17,7 +14,7 @@ stdenv.mkDerivation rec {
     set -e
 
     mkdir -p $out/bin
-    cp       $src/${name}    $out/bin
+    cp       $src/${name} $out/bin
     chmod +x $out/bin/${name}
 
     wrapProgram $out/bin/${name} --prefix PATH : ${stdenv.lib.makeBinPath [
