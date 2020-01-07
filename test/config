@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 set -euxo pipefail
 
-./result/bin/nix-cage --config /var/nonexistent --show-config | jq .
-./result/bin/nix-cage --config <(echo '{}')     --show-config | jq .
+# default config expects a daemon to be running
+# but there is no daemon in ci container
+# ./result/bin/nix-cage --config /var/nonexistent --show-config | jq .
+
+./result/bin/nix-cage --config <(echo '{}') --show-config | jq .

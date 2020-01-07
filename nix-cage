@@ -41,10 +41,9 @@ def get_default_config():
             ), # [to, to, ...]
         },
         "environment": {
-            "HOME":       environ["HOME"],
-            "TERM":       environ["TERM"],
-            "SHELL":      environ["SHELL"],
-            "NIX_REMOTE": "daemon",
+            "HOME":  environ["HOME"],
+            "TERM":  environ["TERM"],
+            "SHELL": environ["SHELL"],
         },
         "arguments": {
             "command": environ["SHELL"],
