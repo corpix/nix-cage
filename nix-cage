@@ -20,6 +20,9 @@ mount_suffixes = [
 ]
 
 def get_default_config():
+    rw = ["."]
+    ro = ["/"]
+    dev = ["/dev"]
     tmpfs = [
         "/tmp",
         "/home",
@@ -39,6 +42,14 @@ def get_default_config():
     set_from_env("SHELL", env)
     set_from_env("NIX_REMOTE", env)
 
+    if "NIX_REMOTE" not in env:
+        nix_local = [
+            environ.get("NIX_STORE_DIR", "/nix/store"),
+            environ.get("NIX_LOG_DIR",   "/nix/var/log/nix"),
+            environ.get("NIX_STATE_DIR", "/nix/var/nix"),
+        ]
+        rw.extend(list(filter(exists, nix_local)))
+
     args = {
         "bwrap": [
             "--die-with-parent",
@@ -52,11 +63,11 @@ def get_default_config():
     set_from_env("SHELL", args, key="command")
 
     return {
-        "mode": "expand", # or replace all dictionary values
+        "mode": "expand",
         "mounts": {
-            "rw":    ["."], # [(from, to), (from, to), ...] | [to, to, ...]
-            "ro":    ["/"], # [(from, to), (from, to), ...] | [to, to, ...]
-            "dev":   ["/dev"], # [(from, to), (from, to), ...] | [to, to, ...]
+            "rw":    rw,                          # [(from, to), (from, to), ...] | [to, to, ...]
+            "ro":    ro,                          # [(from, to), (from, to), ...] | [to, to, ...]
+            "dev":   dev,                         # [(from, to), (from, to), ...] | [to, to, ...]
             "tmpfs": list(filter(exists, tmpfs)), # [to, to, ...]
         },
         "environment": env,
