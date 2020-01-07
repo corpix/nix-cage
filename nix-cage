@@ -20,42 +20,47 @@ mount_suffixes = [
 ]
 
 def get_default_config():
+    tmpfs = [
+        "/tmp",
+        "/home",
+        "/run/user",
+        "/run/media",
+    ]
+    tmpfs.extend(["/run/user/{UID}".format(**environ)]   if "UID"  in environ else [])
+    tmpfs.extend(["/run/media/{USER}".format(**environ)] if "USER" in environ else [])
+
+    def set_from_env(k, r, key=None):
+        if k in environ:
+            r[key or k] = environ[k]
+
+    env = {}
+    set_from_env("HOME", env)
+    set_from_env("TERM", env)
+    set_from_env("SHELL", env)
+    set_from_env("NIX_REMOTE", env)
+
+    args = {
+        "bwrap": [
+            "--die-with-parent",
+            "--unshare-ipc",
+            "--unshare-cgroup",
+            "--unshare-uts",
+            "--hostname", "localhost"
+        ],
+        "nix-shell":  [],
+    }
+    set_from_env("SHELL", args, key="command")
+
     return {
         "mode": "expand", # or replace all dictionary values
         "mounts": {
             "rw":    ["."], # [(from, to), (from, to), ...] | [to, to, ...]
             "ro":    ["/"], # [(from, to), (from, to), ...] | [to, to, ...]
             "dev":   ["/dev"], # [(from, to), (from, to), ...] | [to, to, ...]
-            "tmpfs": list(
-                filter(
-                    exists,
-                    [
-                        "/tmp",
-                        "/home",
-                        "/run/user",
-                        "/run/user/{UID}".format(**environ),
-                        "/run/media",
-                        "/run/media/{USER}".format(**environ)
-                    ]
-                )
-            ), # [to, to, ...]
+            "tmpfs": list(filter(exists, tmpfs)), # [to, to, ...]
         },
-        "environment": {
-            "HOME":  environ["HOME"],
-            "TERM":  environ["TERM"],
-            "SHELL": environ["SHELL"],
-        },
-        "arguments": {
-            "command": environ["SHELL"],
-            "bwrap": [
-                "--die-with-parent",
-                "--unshare-ipc",
-                "--unshare-cgroup",
-                "--unshare-uts",
-                "--hostname", "localhost"
-            ],
-            "nix-shell":  [],
-        }
+        "environment": env,
+        "arguments": args
     }
 
 def realpathwhich(v):
