@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+set -euxo pipefail
+
+./result/bin/nix-cage --config /var/nonexistent --show-config | jq .
+./result/bin/nix-cage --config <(echo '{}')     --show-config | jq .
