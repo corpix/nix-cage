@@ -1,5 +1,0 @@
-#! /usr/bin/env bash
-set -euxo pipefail
-
-./result/bin/nix-cage --config /var/nonexistent --command 'ls'
-./result/bin/nix-cage --config <(echo '{}')     --command 'ls'
