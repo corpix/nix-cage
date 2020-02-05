@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
-from os import execve
+from os import execve, getcwd, chdir
 from os.path import isabs, abspath, expanduser, basename, realpath, exists
 from shutil import which
 from shlex import quote as shell_escape
@@ -242,6 +242,9 @@ def main(arguments, rest=[]):
     environ["UID"] = str(user["uid"])
     environ["GID"] = str(user["gid"])
 
+    arguments["cd"] = abspath(expanduser(arguments["cd"]))
+    chdir(arguments["cd"])
+
     config = load_config(get_default_config(), arguments, rest)
 
     if arguments["show_config"]:
@@ -272,6 +275,7 @@ if __name__ == "__main__":
     p.add_argument("--config", help="config file path", default="nix-cage.json")
     p.add_argument("--command", help="command to execute inside the sandbox")
     p.add_argument("--show-config", help="dumps config in JSON and exit", action="store_true")
+    p.add_argument("--cd", "-C", help="change to directory before doing anything", default=getcwd())
 
     arguments, rest = p.parse_known_args()
     main(arguments.__dict__, rest)
