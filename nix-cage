@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
-from os import execve, getcwd, chdir
+from os import execve, getcwd, chdir, makedirs
 from os.path import isabs, abspath, expanduser, basename, realpath, exists
 from shutil import which
 from shlex import quote as shell_escape
@@ -139,9 +139,7 @@ def sorted_mounts(mounts):
     ms = []
     for k, v in mounts.items():
         for mount in v:
-            ms.append(
-                (k, mount,)
-            )
+            ms.append((k, mount,))
 
     ws = {}
     for k1, p1 in enumerate(ms):
@@ -182,10 +180,10 @@ def make_command(config):
     command = realpathwhich("bwrap")
     mounts = list(reduce(lambda acc, v: acc + v,
                          map(lambda v: (
-                             ["--ro-bind"            ] + list(v[1]) if v[0] == "ro"
-                             else ["--bind"          ] + list(v[1]) if v[0] == "rw"
-                             else ["--dev-bind"      ] + list(v[1]) if v[0] == "dev"
-                             else ["--tmpfs", v[1][1]]              if v[0] == "tmpfs"
+                             ["--ro-bind"            ] + list(v[1][:2]) if v[0] == "ro"
+                             else ["--bind"          ] + list(v[1][:2]) if v[0] == "rw"
+                             else ["--dev-bind"      ] + list(v[1][:2]) if v[0] == "dev"
+                             else ["--tmpfs", v[1][1]]                  if v[0] == "tmpfs"
                              else []
                          ), sorted_mounts(config["mounts"])), []))
 
@@ -226,7 +224,7 @@ def load_config(config, arguments, rest):
 
     ##
 
-    expand_mount = lambda v: (abspath(expand(v[0])), abspath(expand(v[1])),)
+    expand_mount = lambda v: (abspath(expand(v[0])), abspath(expand(v[1])),) + tuple(v[2:])
     for k, v in config["mounts"].items():
         config["mounts"][k] = [
             expand_mount((v, v,) if type(v) is str else v)
@@ -236,6 +234,18 @@ def load_config(config, arguments, rest):
         config["environment"][k] = expand(v)
 
     return config
+
+def ensure_prerequisites(config):
+    initializers = {
+        "d": lambda item: makedirs(item[0], exist_ok=True),
+    }
+
+    for k, v in config["mounts"].items():
+        for item in v:
+            if len(item) == 3:
+                init = initializers.get(item[2], False)
+                if init:
+                    init(item)
 
 def main(arguments, rest=[]):
     user = get_user(environ["USER"])
@@ -250,6 +260,8 @@ def main(arguments, rest=[]):
     if arguments["show_config"]:
         print(json_marshal_pretty_str(config))
         return
+
+    ensure_prerequisites(config)
 
     command, flags = make_command(config)
     stderr.write(" ".join(flags) + "\n")
