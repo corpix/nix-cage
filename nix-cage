@@ -13,281 +13,281 @@ from string import Template
 from collections import defaultdict
 
 mount_suffixes = [
-    "ro",
-    "rw",
-    "dev",
-    "tmpfs"
+  "ro",
+  "rw",
+  "dev",
+  "tmpfs"
 ]
 
 def get_default_config():
-    rw = ["."]
-    ro = ["/"]
-    dev = ["/dev"]
-    tmpfs = [
-        "/tmp",
-        "/home",
-        "/run/user",
-        "/run/media",
+  rw = ["."]
+  ro = ["/"]
+  dev = ["/dev"]
+  tmpfs = [
+    "/tmp",
+    "/home",
+    "/run/user",
+    "/run/media",
+  ]
+  tmpfs.extend(["/run/user/{UID}".format(**environ)]   if "UID"  in environ else [])
+  tmpfs.extend(["/run/media/{USER}".format(**environ)] if "USER" in environ else [])
+
+  def set_from_env(k, r, key=None):
+    if k in environ:
+      r[key or k] = environ[k]
+
+  env = {}
+  set_from_env("HOME", env)
+  set_from_env("TERM", env)
+  set_from_env("SHELL", env)
+  set_from_env("NIX_REMOTE", env)
+
+  if "NIX_REMOTE" not in env:
+    nix_local = [
+      environ.get("NIX_STORE_DIR", "/nix/store"),
+      environ.get("NIX_LOG_DIR",   "/nix/var/log/nix"),
+      environ.get("NIX_STATE_DIR", "/nix/var/nix"),
     ]
-    tmpfs.extend(["/run/user/{UID}".format(**environ)]   if "UID"  in environ else [])
-    tmpfs.extend(["/run/media/{USER}".format(**environ)] if "USER" in environ else [])
+    rw.extend(list(filter(exists, nix_local)))
 
-    def set_from_env(k, r, key=None):
-        if k in environ:
-            r[key or k] = environ[k]
+  args = {
+    "bwrap": [
+      "--die-with-parent",
+      "--unshare-ipc",
+      "--unshare-cgroup",
+      "--unshare-uts",
+      "--hostname", "localhost"
+    ],
+    "nix-shell":  [],
+  }
+  set_from_env("SHELL", args, key="command")
 
-    env = {}
-    set_from_env("HOME", env)
-    set_from_env("TERM", env)
-    set_from_env("SHELL", env)
-    set_from_env("NIX_REMOTE", env)
-
-    if "NIX_REMOTE" not in env:
-        nix_local = [
-            environ.get("NIX_STORE_DIR", "/nix/store"),
-            environ.get("NIX_LOG_DIR",   "/nix/var/log/nix"),
-            environ.get("NIX_STATE_DIR", "/nix/var/nix"),
-        ]
-        rw.extend(list(filter(exists, nix_local)))
-
-    args = {
-        "bwrap": [
-            "--die-with-parent",
-            "--unshare-ipc",
-            "--unshare-cgroup",
-            "--unshare-uts",
-            "--hostname", "localhost"
-        ],
-        "nix-shell":  [],
-    }
-    set_from_env("SHELL", args, key="command")
-
-    return {
-        "mode": "expand",
-        "mounts": {
-            "rw":    rw,                          # [(from, to), (from, to), ...] | [to, to, ...]
-            "ro":    ro,                          # [(from, to), (from, to), ...] | [to, to, ...]
-            "dev":   dev,                         # [(from, to), (from, to), ...] | [to, to, ...]
-            "tmpfs": list(filter(exists, tmpfs)), # [to, to, ...]
-        },
-        "environment": env,
-        "arguments": args
-    }
+  return {
+    "mode": "expand",
+    "mounts": {
+      "rw": rw,                             # [(from, to), (from, to), ...] | [to, to, ...]
+      "ro": ro,                             # [(from, to), (from, to), ...] | [to, to, ...]
+      "dev": dev,                           # [(from, to), (from, to), ...] | [to, to, ...]
+      "tmpfs": list(filter(exists, tmpfs)), # [to, to, ...]
+    },
+    "environment": env,
+    "arguments": args
+  }
 
 def realpathwhich(v):
-    path = which(v)
-    if path:
-        return realpath(path)
-    return v
+  path = which(v)
+  if path:
+    return realpath(path)
+  return v
 
 def expand(v, ctx=environ):
-    return Template(expanduser(v)).substitute(defaultdict(str, ctx))
+  return Template(expanduser(v)).substitute(defaultdict(str, ctx))
 
 def split_path(v):
-    buf = ""
-    res = []
+  buf = ""
+  res = []
 
-    for c in v:
-        if c == sep:
-            if len(buf) > 0:
-                res.append(buf)
-                buf = ""
-            res.append(c)
-        else:
-            buf += c
-
-    if len(buf) > 0:
+  for c in v:
+    if c == sep:
+      if len(buf) > 0:
         res.append(buf)
+        buf = ""
+      res.append(c)
+    else:
+      buf += c
 
-    return res
+  if len(buf) > 0:
+    res.append(buf)
+
+  return res
 
 def merge(source, destination, mode="expand"):
-    if not mode in set(["expand", "replace"]):
-        raise RuntimeError("unsupported mode {}, it could be expand or replace".format(mode))
-    for key, value in source.items():
-        if isinstance(value, dict):
-            node = destination.setdefault(key, {})
-            merge(value, node, mode=mode)
-        elif isinstance(value, list) and mode == "expand":
-            destination[key] = value + destination.get(key, [])
-        else:
-            destination[key] = value
-    return destination
+  if not mode in set(["expand", "replace"]):
+    raise RuntimeError("unsupported mode {}, it could be expand or replace".format(mode))
+  for key, value in source.items():
+    if isinstance(value, dict):
+      node = destination.setdefault(key, {})
+      merge(value, node, mode=mode)
+    elif isinstance(value, list) and mode == "expand":
+      destination[key] = value + destination.get(key, [])
+    else:
+      destination[key] = value
+  return destination
 
 def get_user(user):
-    p = getpwnam(user)
-    return {
-        "user": p.pw_name,
-        "uid": p.pw_uid,
-        "gid": p.pw_gid
-    }
+  p = getpwnam(user)
+  return {
+    "user": p.pw_name,
+    "uid": p.pw_uid,
+    "gid": p.pw_gid
+  }
 
 def json_marshal_pretty_str(v):
-    return json_marshal_str(v, indent=4)
+  return json_marshal_str(v, indent=4)
 
 def split_mount_suffix(v):
-    for suffix in mount_suffixes:
-        delimited = ":" + suffix
-        if v.endswith(delimited):
-            return (
-                v[:-len(delimited)],
-                suffix,
-            )
-    return (v, None)
+  for suffix in mount_suffixes:
+    delimited = ":" + suffix
+    if v.endswith(delimited):
+      return (
+        v[:-len(delimited)],
+        suffix,
+      )
+  return (v, None)
 
 def sorted_mounts(mounts):
-    ms = []
-    for k, v in mounts.items():
-        for mount in v:
-            ms.append((k, mount,))
+  ms = []
+  for k, v in mounts.items():
+    for mount in v:
+      ms.append((k, mount,))
 
-    ws = {}
-    for k1, p1 in enumerate(ms):
-        w = []
+  ws = {}
+  for k1, p1 in enumerate(ms):
+    w = []
 
-        for k2, p2 in enumerate(ms):
-            if k1 == k2:
-                continue
+    for k2, p2 in enumerate(ms):
+      if k1 == k2:
+        continue
 
-            p1s = split_path(p1[1][1])
-            p2s = split_path(p2[1][1])
-            n = 0
+      p1s = split_path(p1[1][1])
+      p2s = split_path(p2[1][1])
+      n = 0
 
-            for v in p2s:
-                if len(p1s) <= n or len(p2s) <= n:
-                    break
-                if v == p1s[n]:
-                    n += 1
-                else:
-                    break
+      for v in p2s:
+        if len(p1s) <= n or len(p2s) <= n:
+          break
+        if v == p1s[n]:
+          n += 1
+        else:
+          break
 
-            if len(p1s) > len(p2s):
-                n += 1
+      if len(p1s) > len(p2s):
+        n += 1
 
-            w.append(n)
+      w.append(n)
 
-        ws[p1] = max(w)
+    ws[p1] = max(w)
 
-    return map(
-        lambda v: v[1],
-        sorted(
-            [(v, k,) for k, v in ws.items()],
-            key=lambda v: v[0]
-        )
+  return map(
+    lambda v: v[1],
+    sorted(
+      [(v, k,) for k, v in ws.items()],
+      key=lambda v: v[0]
     )
+  )
 
 def make_command(config):
-    command = realpathwhich("bwrap")
-    mounts = list(reduce(lambda acc, v: acc + v,
-                         map(lambda v: (
-                             ["--ro-bind"            ] + list(v[1][:2]) if v[0] == "ro"
-                             else ["--bind"          ] + list(v[1][:2]) if v[0] == "rw"
-                             else ["--dev-bind"      ] + list(v[1][:2]) if v[0] == "dev"
-                             else ["--tmpfs", v[1][1]]                  if v[0] == "tmpfs"
-                             else []
-                         ), sorted_mounts(config["mounts"])), []))
+  command = realpathwhich("bwrap")
+  mounts = list(reduce(lambda acc, v: acc + v,
+             map(lambda v: (
+               ["--ro-bind"] + list(v[1][:2]) if v[0] == "ro"
+               else ["--bind"] + list(v[1][:2]) if v[0] == "rw"
+               else ["--dev-bind"] + list(v[1][:2]) if v[0] == "dev"
+               else ["--tmpfs", v[1][1]] if v[0] == "tmpfs"
+               else []
+             ), sorted_mounts(config["mounts"])), []))
 
-    env = list(reduce(lambda acc, kv: acc + ["--setenv"] + list(kv),
-                      config["environment"].items(), []))
+  env = list(reduce(lambda acc, kv: acc + ["--setenv"] + list(kv),
+            config["environment"].items(), []))
 
-    bwrap_flags = config["arguments"]["bwrap"]
-    if exists("shell.nix"):
-        shell = [which("nix-shell")]
-        shell_flags = config["arguments"]["nix-shell"] + [
-            "--command", config["arguments"]["command"]
-        ]
-    else:
-        shell = [which(environ.get("SHELL", "bash"))]
-        shell_flags = ["-c", config["arguments"]["command"]] if config["arguments"]["command"] else []
+  bwrap_flags = config["arguments"]["bwrap"]
+  if exists("shell.nix"):
+    shell = [which("nix-shell")]
+    shell_flags = config["arguments"]["nix-shell"] + [
+      "--command", config["arguments"]["command"]
+    ]
+  else:
+    shell = [which(environ.get("SHELL", "bash"))]
+    shell_flags = ["-c", config["arguments"]["command"]] if config["arguments"]["command"] else []
 
-    return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
+  return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
 
 def load_config(config, arguments, rest):
-    if exists(arguments["config"]):
-        with open(arguments["config"], "r") as stream:
-            overlay_config = json_unmarshal(stream)
-            config = merge(overlay_config, config, mode=overlay_config.get("mode", config["mode"]))
+  if exists(arguments["config"]):
+    with open(arguments["config"], "r") as stream:
+      overlay_config = json_unmarshal(stream)
+      config = merge(overlay_config, config, mode=overlay_config.get("mode", config["mode"]))
 
-    ##
+  ##
 
-    if arguments["command"]:
-        config["arguments"]["command"] = arguments["command"]
-    config["arguments"]["bwrap"] += rest
-    for path in arguments["path"]:
-        path, suffix = split_mount_suffix(path)
-        if not suffix:
-            suffix = "rw"
-        if suffix == "tmpfs":
-            config["mounts"][suffix].append(path)
-        else:
-            config["mounts"][suffix].append((path, path,))
+  if arguments["command"]:
+    config["arguments"]["command"] = arguments["command"]
+  config["arguments"]["bwrap"] += rest
+  for path in arguments["path"]:
+    path, suffix = split_mount_suffix(path)
+    if not suffix:
+      suffix = "rw"
+    if suffix == "tmpfs":
+      config["mounts"][suffix].append(path)
+    else:
+      config["mounts"][suffix].append((path, path,))
 
-    ##
+  ##
 
-    expand_mount = lambda v: (abspath(expand(v[0])), abspath(expand(v[1])),) + tuple(v[2:])
-    for k, v in config["mounts"].items():
-        config["mounts"][k] = [
-            expand_mount((v, v,) if type(v) is str else v)
-            for v in config["mounts"][k]
-        ]
-    for k, v in config["environment"].items():
-        config["environment"][k] = expand(v)
+  expand_mount = lambda v: (abspath(expand(v[0])), abspath(expand(v[1])),) + tuple(v[2:])
+  for k, v in config["mounts"].items():
+    config["mounts"][k] = [
+      expand_mount((v, v,) if type(v) is str else v)
+      for v in config["mounts"][k]
+    ]
+  for k, v in config["environment"].items():
+    config["environment"][k] = expand(v)
 
-    return config
+  return config
 
 def ensure_prerequisites(config):
-    initializers = {
-        "d": lambda item: makedirs(item[0], exist_ok=True),
-    }
+  initializers = {
+    "d": lambda item: makedirs(item[0], exist_ok=True),
+  }
 
-    for k, v in config["mounts"].items():
-        for item in v:
-            if len(item) == 3:
-                init = initializers.get(item[2], False)
-                if init:
-                    init(item)
+  for k, v in config["mounts"].items():
+    for item in v:
+      if len(item) == 3:
+        init = initializers.get(item[2], False)
+        if init:
+          init(item)
 
 def main(arguments, rest=[]):
-    user = get_user(environ["USER"])
-    environ["UID"] = str(user["uid"])
-    environ["GID"] = str(user["gid"])
+  user = get_user(environ["USER"])
+  environ["UID"] = str(user["uid"])
+  environ["GID"] = str(user["gid"])
 
-    arguments["cd"] = abspath(expanduser(arguments["cd"]))
-    chdir(arguments["cd"])
+  arguments["cd"] = abspath(expanduser(arguments["cd"]))
+  chdir(arguments["cd"])
 
-    config = load_config(get_default_config(), arguments, rest)
+  config = load_config(get_default_config(), arguments, rest)
 
-    if arguments["show_config"]:
-        print(json_marshal_pretty_str(config))
-        return
+  if arguments["show_config"]:
+    print(json_marshal_pretty_str(config))
+    return
 
-    ensure_prerequisites(config)
+  ensure_prerequisites(config)
 
-    command, flags = make_command(config)
-    stderr.write(" ".join(flags) + "\n")
-    execve(command, flags, environ)
+  command, flags = make_command(config)
+  stderr.write(" ".join(flags) + "\n")
+  execve(command, flags, environ)
 
 if __name__ == "__main__":
-    p = ArgumentParser(
-        description="Nix-cage, sandboxed environments with nix-shell"
-    )
+  p = ArgumentParser(
+    description="Nix-cage, sandboxed environments with nix-shell"
+  )
 
-    p.add_argument(
-        "path",
-        nargs="*",
-        help=(
-            "One or more directories or files which will be mounted into the sandbox. "
-            "Paths inside sandbox are same as in host system. "
-            "Mounts are read/write by default, but you could change this by appending one "
-            "of {} suffixes to the path.".format(
-                "|".join([":" + v for v in mount_suffixes])
-            )
-        )
+  p.add_argument(
+    "path",
+    nargs="*",
+    help=(
+      "One or more directories or files which will be mounted into the sandbox. "
+      "Paths inside sandbox are same as in host system. "
+      "Mounts are read/write by default, but you could change this by appending one "
+      "of {} suffixes to the path.".format(
+        "|".join([":" + v for v in mount_suffixes])
+      )
     )
-    p.add_argument("--config", help="config file path", default="nix-cage.json")
-    p.add_argument("--command", help="command to execute inside the sandbox")
-    p.add_argument("--show-config", help="dumps config in JSON and exit", action="store_true")
-    p.add_argument("--cd", "-C", help="change to directory before doing anything", default=getcwd())
+  )
+  p.add_argument("--config", help="config file path", default="nix-cage.json")
+  p.add_argument("--command", help="command to execute inside the sandbox")
+  p.add_argument("--show-config", help="dumps config in JSON and exit", action="store_true")
+  p.add_argument("--cd", "-C", help="change to directory before doing anything", default=getcwd())
 
-    arguments, rest = p.parse_known_args()
-    main(arguments.__dict__, rest)
+  arguments, rest = p.parse_known_args()
+  main(arguments.__dict__, rest)
