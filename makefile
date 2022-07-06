@@ -48,4 +48,3 @@ help: # print defined targets and their comments
 		| sort                                                   \
 		| sed 's|:.*#|#|;s|#\s*|#|'                              \
 		| column -t -s '#' -o ' | '
->>>>>>> nix-cage: added «change working directory» support
