@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
 from os import execve, getcwd, chdir, makedirs
-from os.path import isabs, abspath, expanduser, basename, realpath, exists
+from os.path import isabs, abspath, expanduser, basename, dirname, realpath, exists, split as splitfile, normpath as normalizepath, join as joinpath
 from shutil import which
 from shlex import quote as shell_escape
 from os import environ, sep
@@ -86,7 +86,6 @@ def expand(v, ctx=environ):
 def split_path(v):
   buf = ""
   res = []
-
   for c in v:
     if c == sep:
       if len(buf) > 0:
@@ -95,10 +94,8 @@ def split_path(v):
       res.append(c)
     else:
       buf += c
-
   if len(buf) > 0:
     res.append(buf)
-
   return res
 
 def merge(source, destination, mode="expand"):
@@ -203,8 +200,22 @@ def make_command(config):
   return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
 
 def load_config(config, arguments, rest):
-  if exists(arguments["config"]):
-    with open(arguments["config"], "r") as stream:
+  files = []
+  filepath = abspath(arguments["config"])
+  while True:
+    if exists(filepath):
+      files.insert(0, filepath)
+    parts = splitfile(filepath)
+    name = parts[1]
+    dir = parts[0]
+    next_filepath = normalizepath(joinpath(dirname(dir), name))
+    if next_filepath != filepath:
+      filepath = next_filepath
+    else:
+      break
+
+  for filepath in files:
+    with open(filepath, "r") as stream:
       overlay_config = json_unmarshal(stream)
       config = merge(overlay_config, config, mode=overlay_config.get("mode", config["mode"]))
 
