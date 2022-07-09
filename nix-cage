@@ -106,7 +106,11 @@ def merge(source, destination, mode="expand"):
       node = destination.setdefault(key, {})
       merge(value, node, mode=mode)
     elif isinstance(value, list) and mode == "expand":
-      destination[key] = value + destination.get(key, [])
+      items = []
+      for v in value + destination.get(key, []):
+        if v not in items:
+          items.append(v)
+      destination[key] = items
     else:
       destination[key] = value
   return destination
