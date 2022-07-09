@@ -221,7 +221,15 @@ def load_config(config, arguments, rest):
   for filepath in files:
     with open(filepath, "r") as stream:
       overlay_config = json_unmarshal(stream)
-      config = merge(overlay_config, config, mode=overlay_config.get("mode", config["mode"]))
+      global_mode = overlay_config.get("mode", config["mode"])
+      for section in ["mounts", "environment", "arguments"]:
+        overlay_mode = overlay_config.get("mode", global_mode)
+        overlay_section_mode = overlay_config.get(section, {}).get("mode", overlay_mode)
+        config[section] = merge(
+          overlay_config.get(section, {}),
+          config.get(section, {}),
+          mode=overlay_section_mode
+        )
 
   ##
 
