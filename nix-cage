@@ -83,6 +83,13 @@ def realpathwhich(v):
 def expand(v, ctx=environ):
   return Template(expanduser(v)).substitute(defaultdict(str, ctx))
 
+def expand_mount(v):
+  source = expand(v[0])
+  target = expand(v[1])
+  if source is None or target is None:
+    return None
+  return (abspath(source), abspath(target),) + tuple(v[2:])
+
 def split_path(v):
   buf = ""
   res = []
@@ -247,12 +254,14 @@ def load_config(config, arguments, rest):
 
   ##
 
-  expand_mount = lambda v: (abspath(expand(v[0])), abspath(expand(v[1])),) + tuple(v[2:])
-  for k, v in config["mounts"].items():
-    config["mounts"][k] = [
-      expand_mount((v, v,) if type(v) is str else v)
-      for v in config["mounts"][k]
-    ]
+  for k, mounts in config["mounts"].items():
+    expanded_mounts = []
+    for v in mounts:
+      mount = expand_mount((v, v,) if isinstance(v, str) else v)
+      if mount is None:
+          continue
+      expanded_mounts.append(mount)
+    config["mounts"][k] = expanded_mounts
   for k, v in config["environment"].items():
     config["environment"][k] = expand(v)
 
