@@ -26,6 +26,7 @@ write_nix_cage_flake() {
     '        mounts.rw = [{ source = "./data"; target = "~/.nix-cage-test-data"; create = true; }];' \
     '        environment.FOO = "flake";' \
     '        arguments.nixDevelop = [ "--impure" ];' \
+    '        launcher = "direct";' \
     '        command = "echo flake";' \
     '      }];' \
     '    };' \
@@ -59,10 +60,30 @@ write_invalid_flake() {
     > "$dir/flake.nix"
 }
 
+write_sandboxed_shell_flake() {
+  local dir="$1"
+
+  printf '%s\n' \
+    '{' \
+    "  inputs.nix-cage.url = \"path:$root\";" \
+    '  outputs = { nix-cage, ... }: {' \
+    '    devShells.x86_64-linux.default = nix-cage.lib.mkSandboxedDevShell {' \
+    '      system = "x86_64-linux";' \
+    '      modules = [{' \
+    '        environment.FOO = "shell";' \
+    '        launcher = "nix-develop";' \
+    '      }];' \
+    '    };' \
+    '  };' \
+    '}' \
+    > "$dir/flake.nix"
+}
+
 flake_dir="$(mktemp -d /tmp/nix-cage-flake-config.XXXXXX)"
 ordinary_dir="$(mktemp -d /tmp/nix-cage-ordinary-flake.XXXXXX)"
 invalid_dir="$(mktemp -d /tmp/nix-cage-invalid-flake.XXXXXX)"
-trap 'rm -rf "$flake_dir" "$ordinary_dir" "$invalid_dir"' EXIT
+shell_dir="$(mktemp -d /tmp/nix-cage-sandboxed-shell.XXXXXX)"
+trap 'rm -rf "$flake_dir" "$ordinary_dir" "$invalid_dir" "$shell_dir"' EXIT
 
 write_nix_cage_flake "$flake_dir"
 
@@ -70,6 +91,7 @@ assert_json "'$root/nix-cage' -C '$flake_dir' --show-config" ".environment.FOO" 
 assert_json "'$root/nix-cage' -C '$flake_dir' --show-config" ".mounts.rw[0][0]" "==" "\"$flake_dir/data\""
 assert_json "'$root/nix-cage' -C '$flake_dir' --show-config" ".mounts.rw[0][2]" "==" '"d"'
 "$root/nix-cage" -C "$flake_dir" --show-config | jq -e '.arguments["nix-develop"][0] == "--impure"' > /dev/null
+assert_json "'$root/nix-cage' -C '$flake_dir' --show-config" ".launcher" "==" '"direct"'
 assert_json "'$root/nix-cage' -C '$flake_dir' --show-config" ".arguments.command" "==" '"echo flake"'
 
 printf '%s\n' '{"environment":{"FOO":"json"}}' > "$flake_dir/nix-cage.json"
@@ -84,3 +106,9 @@ if "$root/nix-cage" -C "$invalid_dir" --show-config > /dev/null 2>&1; then
   echo "invalid nixCageConfigurations.default unexpectedly succeeded" >&2
   exit 1
 fi
+
+write_sandboxed_shell_flake "$shell_dir"
+nix eval --impure --no-write-lock-file --raw "path:$shell_dir#devShells.x86_64-linux.default.shellHook" 2> /dev/null \
+  | grep -F 'nix-cage --config' > /dev/null
+nix eval --impure --no-write-lock-file --raw "path:$shell_dir#devShells.x86_64-linux.default.shellHook" 2> /dev/null \
+  | grep -F -- '--launcher direct' > /dev/null

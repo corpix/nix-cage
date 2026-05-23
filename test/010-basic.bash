@@ -21,3 +21,4 @@ cd /tmp
 
 assert_json "cd /tmp && '$root/nix-cage' --show-config" ".mounts.rw[0][0]" "==" '"/tmp"'
 assert_json "'$root/nix-cage' -C '$tmpdir' --show-config" ".mounts.rw[0][0]" "==" "\"$tmpdir\""
+assert_json "'$root/nix-cage' --launcher direct --show-config" ".launcher" "==" '"direct"'

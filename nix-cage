@@ -68,6 +68,7 @@ def get_default_config():
 
   return {
     "mode": "expand",
+    "launcher": None,
     "mounts": {
       "rw": rw,                             # [(from, to), (from, to), ...] | [to, to, ...]
       "ro": ro,                             # [(from, to), (from, to), ...] | [to, to, ...]
@@ -135,6 +136,10 @@ def merge(source, destination, mode="expand"):
   return destination
 
 def merge_overlay(overlay_config, config):
+  for key in ["mode", "launcher"]:
+    if key in overlay_config:
+      config[key] = overlay_config[key]
+
   global_mode = overlay_config.get("mode", config["mode"])
   for section in ["mounts", "environment", "arguments"]:
     overlay_mode = overlay_config.get("mode", global_mode)
@@ -247,21 +252,32 @@ def make_command(config):
   env = list(reduce(lambda acc, kv: acc + ["--setenv"] + list(kv),
             config["environment"].items(), []))
 
+  launcher = config.get("launcher", None)
+  if not launcher:
+    if exists("flake.nix"):
+      launcher = "nix-develop"
+    elif exists("shell.nix"):
+      launcher = "nix-shell"
+    else:
+      launcher = "direct"
+
   bwrap_flags = config["arguments"]["bwrap"]
-  if exists("flake.nix"):
+  if launcher == "nix-develop":
     command_shell = config["environment"].get("SHELL", environ.get("SHELL", "bash"))
     shell = [which("nix")]
     shell_flags = ["develop"] + config["arguments"]["nix-develop"] + [
       "--command", command_shell, "-c", config["arguments"]["command"]
     ]
-  elif exists("shell.nix"):
+  elif launcher == "nix-shell":
     shell = [which("nix-shell")]
     shell_flags = config["arguments"]["nix-shell"] + [
       "--command", config["arguments"]["command"]
     ]
-  else:
-    shell = [which(environ.get("SHELL", "bash"))]
+  elif launcher == "direct":
+    shell = [which(config["environment"].get("SHELL", environ.get("SHELL", "bash")))]
     shell_flags = ["-c", config["arguments"]["command"]] if config["arguments"]["command"] else []
+  else:
+    raise RuntimeError("unsupported launcher {}".format(launcher))
 
   return command, [basename(command)] + mounts + env + bwrap_flags + shell + shell_flags
 
@@ -293,6 +309,8 @@ def load_config(config, arguments, rest):
 
   if arguments["command"]:
     config["arguments"]["command"] = arguments["command"]
+  if arguments["launcher"]:
+    config["launcher"] = arguments["launcher"]
   config["arguments"]["bwrap"] += rest
   for path in arguments["path"]:
     path, suffix = split_mount_suffix(path)
@@ -370,6 +388,7 @@ if __name__ == "__main__":
   )
   p.add_argument("--config", help="config file path", default="nix-cage.json")
   p.add_argument("--command", help="command to execute inside the sandbox")
+  p.add_argument("--launcher", choices=["nix-develop", "nix-shell", "direct"], help="force command launcher")
   p.add_argument("--show-config", help="dumps config in JSON and exit", action="store_true")
   p.add_argument("--cd", "-C", help="change to directory before doing anything", default=getcwd())
 

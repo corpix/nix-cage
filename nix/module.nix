@@ -92,6 +92,16 @@ in
       };
     };
 
+    launcher = mkOption {
+      type = types.nullOr (types.enum [
+        "nix-develop"
+        "nix-shell"
+        "direct"
+      ]);
+      default = null;
+      description = "Command launcher to force. Null keeps nix-cage automatic launcher detection.";
+    };
+
     environment = mkOption {
       type = types.attrsOf types.str;
       default = { };
@@ -143,7 +153,7 @@ in
       cfg = config;
     in
     {
-      inherit (cfg) mode;
+      inherit (cfg) mode launcher;
       mounts = builtins.mapAttrs (_: renderMounts) cfg.mounts;
       inherit (cfg) environment;
       arguments =

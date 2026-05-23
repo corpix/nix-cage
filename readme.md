@@ -71,6 +71,7 @@ merges it after discovered JSON config files:
           arguments.bwrap = [ "--proc" "/proc" ];
           arguments.nixDevelop = [ "--impure" ];
 
+          launcher = "direct";
           command = "bash";
         }
       ];
@@ -82,6 +83,35 @@ merges it after discovered JSON config files:
 If `--config` points to a custom path, flake config is not loaded. Ordinary
 flakes without `nixCageConfigurations.default` keep the default nix-cage
 settings.
+
+By default nix-cage chooses the launcher from files in the working directory:
+`flake.nix` uses `nix develop`, `shell.nix` uses `nix-shell`, and directories
+without either run the command directly. Set `launcher` in flake config, or pass
+`--launcher`, to force one of `nix-develop`, `nix-shell`, or `direct`.
+
+To make `nix develop` start the sandbox without installing nix-cage globally,
+use `mkSandboxedDevShell`:
+
+```nix
+{
+  inputs.nix-cage.url = "github:corpix/nix-cage";
+
+  outputs = { nix-cage, ... }: {
+    devShells.x86_64-linux.default = nix-cage.lib.mkSandboxedDevShell {
+      system = "x86_64-linux";
+      modules = [
+        {
+          mounts.rw = [ "~/.emacs.d" ];
+          command = "bash";
+        }
+      ];
+    };
+  };
+}
+```
+
+The generated dev shell execs nix-cage from the flake input with
+`--launcher direct`, avoiding recursive `nix develop` launches.
 
 Example of legacy `shell.nix`:
 
