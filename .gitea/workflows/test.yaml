@@ -22,4 +22,4 @@ jobs:
         with:
           fetch-depth: 10
       - name: test
-        run: make test
+        run: nix develop -c 'make test'
