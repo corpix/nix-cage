@@ -34,6 +34,7 @@ def get_default_config():
   ]
   tmpfs.extend(["/run/user/{UID}".format(**environ)]   if "UID"  in environ else [])
   tmpfs.extend(["/run/media/{USER}".format(**environ)] if "USER" in environ else [])
+  tmpfs.extend([environ["HOME"]]                       if "HOME" in environ else [])
 
   def set_from_env(k, r, key=None):
     if k in environ:
@@ -358,7 +359,7 @@ def ensure_prerequisites(config):
 
 def main(arguments, rest=[]):
   user = get_user(environ.get("USER"))
-  environ["USER"] = user["user"]
+  environ.setdefault("USER", user["user"])
   environ["UID"] = str(user["uid"])
   environ["GID"] = str(user["gid"])
 

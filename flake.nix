@@ -79,6 +79,10 @@
           default = nix-cage;
         };
 
+        nixosTests = import ./nix/vm/tests.nix {
+          inherit nixpkgs system self;
+        };
+
         devShells = {
           default = pkgs.mkShell {
             packages = with pkgs; [

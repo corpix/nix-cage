@@ -8,8 +8,9 @@ build: # build package
 	nix build
 
 .PHONY: test
-test: build # runs integration tests
-	@set -e; for test in test/*.bash; do echo "== $$test"; bash "$$test"; done
+test: # runs NixOS VM integration tests
+	@arch=$$(nix eval --raw --impure --expr builtins.currentSystem); \
+	nix build -L --print-out-paths --no-link ".#nixosTests.$$arch.default"
 
 .PHONY: release
 release: # release new version, usage: make release [major=N] [minor=N]

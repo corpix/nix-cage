@@ -25,4 +25,4 @@ jobs:
         with:
           fetch-depth: 10
       - name: test
-        run: nix develop .#devShells.${{ matrix.arch }}.default --command make test
+        run: nix build -L --print-out-paths --no-link .#nixosTests.${{ matrix.arch }}.default
