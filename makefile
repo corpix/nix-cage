@@ -18,7 +18,7 @@ all: # does nothing
 
 .PHONY: build
 build: # build package
-	nix-build .
+	nix build
 
 .PHONY: test
 test: build # runs integration tests
