@@ -7,10 +7,11 @@ from shlex import quote as shell_escape
 from os import environ, sep
 from sys import stderr
 from functools import reduce
-from json import load as json_unmarshal, dump as json_marshal, dumps as json_marshal_str
+from json import load as json_unmarshal, loads as json_unmarshal_str, dump as json_marshal, dumps as json_marshal_str
 from pwd import getpwnam
 from string import Template
 from collections import defaultdict
+from subprocess import run, PIPE
 
 mount_suffixes = [
   "ro",
@@ -18,6 +19,8 @@ mount_suffixes = [
   "dev",
   "tmpfs"
 ]
+
+default_config_path = "nix-cage.json"
 
 def get_default_config():
   rw = ["."]
@@ -91,6 +94,14 @@ def expand_mount(v):
     return None
   return (abspath(source), abspath(target),) + tuple(v[2:])
 
+def normalize_mount(v):
+  if isinstance(v, dict):
+    source = v["source"]
+    target = v.get("target", source)
+    suffix = ["d"] if v.get("create", False) else []
+    return tuple([source, target] + suffix)
+  return v
+
 def split_path(v):
   buf = ""
   res = []
@@ -122,6 +133,18 @@ def merge(source, destination, mode="expand"):
     else:
       destination[key] = value
   return destination
+
+def merge_overlay(overlay_config, config):
+  global_mode = overlay_config.get("mode", config["mode"])
+  for section in ["mounts", "environment", "arguments"]:
+    overlay_mode = overlay_config.get("mode", global_mode)
+    overlay_section_mode = overlay_config.get(section, {}).get("mode", overlay_mode)
+    config[section] = merge(
+      overlay_config.get(section, {}),
+      config.get(section, {}),
+      mode=overlay_section_mode
+    )
+  return config
 
 def get_user(user):
   p = getpwnam(user)
@@ -185,6 +208,31 @@ def sorted_mounts(mounts):
     )
   )
 
+def load_flake_config():
+  if not exists("flake.nix"):
+    return {}
+
+  flake_url = "path:{}".format(getcwd())
+  expr = """
+    let
+      flake = builtins.getFlake {flake_url};
+    in
+      if flake ? nixCageConfigurations && flake.nixCageConfigurations ? default
+      then flake.nixCageConfigurations.default.config
+      else {{}}
+  """.format(flake_url=json_marshal_str(flake_url))
+
+  result = run(
+    ["nix", "eval", "--impure", "--no-write-lock-file", "--json", "--expr", expr],
+    stdout=PIPE,
+    stderr=PIPE,
+  )
+  if result.returncode != 0:
+    stderr.write(result.stderr.decode())
+    raise RuntimeError("failed to evaluate nix-cage flake configuration")
+
+  return json_unmarshal_str(result.stdout.decode())
+
 def make_command(config):
   command = realpathwhich("bwrap")
   mounts = list(reduce(lambda acc, v: acc + v,
@@ -219,6 +267,7 @@ def make_command(config):
 
 def load_config(config, arguments, rest):
   files = []
+  default_config = arguments["config"] == default_config_path
   filepath = abspath(arguments["config"])
   while True:
     if exists(filepath):
@@ -235,15 +284,10 @@ def load_config(config, arguments, rest):
   for filepath in files:
     with open(filepath, "r") as stream:
       overlay_config = json_unmarshal(stream)
-      global_mode = overlay_config.get("mode", config["mode"])
-      for section in ["mounts", "environment", "arguments"]:
-        overlay_mode = overlay_config.get("mode", global_mode)
-        overlay_section_mode = overlay_config.get(section, {}).get("mode", overlay_mode)
-        config[section] = merge(
-          overlay_config.get(section, {}),
-          config.get(section, {}),
-          mode=overlay_section_mode
-        )
+      config = merge_overlay(overlay_config, config)
+
+  if default_config:
+    config = merge_overlay(load_flake_config(), config)
 
   ##
 
@@ -264,6 +308,7 @@ def load_config(config, arguments, rest):
   for k, mounts in config["mounts"].items():
     expanded_mounts = []
     for v in mounts:
+      v = normalize_mount(v)
       mount = expand_mount((v, v,) if isinstance(v, str) else v)
       if mount is None:
           continue

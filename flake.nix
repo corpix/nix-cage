@@ -14,8 +14,31 @@
       ];
 
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+
+      nixCageModule = import ./nix/module.nix {
+        lib = nixpkgs.lib;
+      };
+
+      mkNixCageConfiguration =
+        { modules ? [ ] }:
+        let
+          evaluated = nixpkgs.lib.evalModules {
+            modules = [
+              nixCageModule
+            ] ++ modules;
+          };
+        in
+        evaluated
+        // {
+          config = evaluated.config.renderedConfig;
+          moduleConfig = builtins.removeAttrs evaluated.config [ "renderedConfig" ];
+        };
     in
     {
+      lib = {
+        inherit nixCageModule mkNixCageConfiguration;
+      };
+
       packages = forAllSystems (
         system:
         let

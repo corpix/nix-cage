@@ -44,6 +44,45 @@ Example of `flake.nix`:
 }
 ```
 
+`flake.nix` may also provide nix-cage settings. When using the default
+`nix-cage.json` config path, `nix-cage` reads
+`nixCageConfigurations.default.config` from the current directory's flake and
+merges it after discovered JSON config files:
+
+```nix
+{
+  inputs.nix-cage.url = "github:corpix/nix-cage";
+
+  outputs = { nix-cage, ... }: {
+    nixCageConfigurations.default = nix-cage.lib.mkNixCageConfiguration {
+      modules = [
+        {
+          mounts.rw = [
+            "~/.emacs.d"
+            {
+              source = "./.config";
+              target = "~/.config";
+              create = true;
+            }
+          ];
+
+          environment.FOO = "bar";
+
+          arguments.bwrap = [ "--proc" "/proc" ];
+          arguments.nixDevelop = [ "--impure" ];
+
+          command = "bash";
+        }
+      ];
+    };
+  };
+}
+```
+
+If `--config` points to a custom path, flake config is not loaded. Ordinary
+flakes without `nixCageConfigurations.default` keep the default nix-cage
+settings.
+
 Example of legacy `shell.nix`:
 
 ```nix
