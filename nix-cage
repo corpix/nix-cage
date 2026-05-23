@@ -36,7 +36,7 @@ def get_default_config():
     if k in environ:
       r[key or k] = environ[k]
 
-  env = {}
+  env = {"TMPDIR": "/tmp"}
   set_from_env("HOME", env)
   set_from_env("TERM", env)
   set_from_env("SHELL", env)
@@ -58,6 +58,7 @@ def get_default_config():
       "--unshare-uts",
       "--hostname", "localhost"
     ],
+    "nix-develop": [],
     "nix-shell":  [],
   }
   set_from_env("SHELL", args, key="command")
@@ -199,7 +200,13 @@ def make_command(config):
             config["environment"].items(), []))
 
   bwrap_flags = config["arguments"]["bwrap"]
-  if exists("shell.nix"):
+  if exists("flake.nix"):
+    command_shell = config["environment"].get("SHELL", environ.get("SHELL", "bash"))
+    shell = [which("nix")]
+    shell_flags = ["develop"] + config["arguments"]["nix-develop"] + [
+      "--command", command_shell, "-c", config["arguments"]["command"]
+    ]
+  elif exists("shell.nix"):
     shell = [which("nix-shell")]
     shell_flags = config["arguments"]["nix-shell"] + [
       "--command", config["arguments"]["command"]

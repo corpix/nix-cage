@@ -15,10 +15,36 @@ Sandboxed environments with `bwrap` and `nix` package manager.
 
 For basic usage there are 2 steps:
 
-- create `shell.nix` with settings you need
+- create `flake.nix` or `shell.nix` with settings you need
 - start `nix-cage`
 
-Example of `shell.nix`:
+When `flake.nix` is present in the working directory, `nix-cage` starts the
+command with `nix develop`. Otherwise it falls back to `nix-shell` when
+`shell.nix` is present, or to the configured shell command directly.
+
+Example of `flake.nix`:
+
+```nix
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+  outputs =
+    { nixpkgs, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          python3
+        ];
+      };
+    };
+}
+```
+
+Example of legacy `shell.nix`:
 
 ```nix
 with import <nixpkgs> {};
