@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from argparse import ArgumentParser
-from os import execve, getcwd, chdir, makedirs
+from os import execve, getcwd, chdir, makedirs, getuid, getgid
 from os.path import isabs, abspath, expanduser, basename, dirname, realpath, exists, split as splitfile, normpath as normalizepath, join as joinpath
 from shutil import which
 from shlex import quote as shell_escape
@@ -8,7 +8,7 @@ from os import environ, sep
 from sys import stderr
 from functools import reduce
 from json import load as json_unmarshal, loads as json_unmarshal_str, dump as json_marshal, dumps as json_marshal_str
-from pwd import getpwnam
+from pwd import getpwnam, getpwuid
 from string import Template
 from collections import defaultdict
 from subprocess import run, PIPE
@@ -151,13 +151,20 @@ def merge_overlay(overlay_config, config):
     )
   return config
 
-def get_user(user):
-  p = getpwnam(user)
-  return {
-    "user": p.pw_name,
-    "uid": p.pw_uid,
-    "gid": p.pw_gid
-  }
+def get_user(name=None):
+  uid = getuid()
+  gid = getgid()
+  if name:
+    try:
+      p = getpwnam(name)
+      return {"user": p.pw_name, "uid": p.pw_uid, "gid": p.pw_gid}
+    except KeyError:
+      pass
+  try:
+    p = getpwuid(uid)
+    return {"user": p.pw_name, "uid": p.pw_uid, "gid": p.pw_gid}
+  except KeyError:
+    return {"user": name or str(uid), "uid": uid, "gid": gid}
 
 def json_marshal_pretty_str(v):
   return json_marshal_str(v, indent=4)
@@ -350,7 +357,8 @@ def ensure_prerequisites(config):
           init(item)
 
 def main(arguments, rest=[]):
-  user = get_user(environ["USER"])
+  user = get_user(environ.get("USER"))
+  environ["USER"] = user["user"]
   environ["UID"] = str(user["uid"])
   environ["GID"] = str(user["gid"])
 

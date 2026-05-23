@@ -16,7 +16,6 @@ jobs:
     env:
       NIX_CONFIG: |
         experimental-features = nix-command flakes
-      USER: root
     steps:
       - name: git config
         run: |
