@@ -1,0 +1,25 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: nix
+    env:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+    steps:
+      - name: git config
+        run: |
+          git config --global url.'https://git.tatikoma.dev'.insteadOf 'ssh://gitea@git.tatikoma.dev:2222'
+      - name: checkout
+        uses: https://git.tatikoma.dev/corpix/checkout-action@v3
+        with:
+          fetch-depth: 10
+      - name: test
+        run: make test
