@@ -1,3 +1,0 @@
-{
-    "mounts": {"rw": [["./.config", "~/.config", "d"]]}
-}
