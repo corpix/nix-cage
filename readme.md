@@ -1,8 +1,6 @@
 nix-cage
 --------------
 
-[![Build Status](https://travis-ci.org/corpix/nix-cage.svg?branch=master)](https://travis-ci.org/corpix/nix-cage)
-
 Sandboxed environments with `bwrap` and `nix` package manager.
 
 ## Requirements
