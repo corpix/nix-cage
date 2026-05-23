@@ -10,9 +10,13 @@ concurrency:
 jobs:
   test:
     runs-on: nix
+    strategy:
+      matrix:
+        arch: [x86_64-linux]
     env:
       NIX_CONFIG: |
         experimental-features = nix-command flakes
+      USER: root
     steps:
       - name: git config
         run: |
@@ -22,4 +26,4 @@ jobs:
         with:
           fetch-depth: 10
       - name: test
-        run: nix develop -c 'make test'
+        run: nix develop .#devShells.${{ matrix.arch }}.default --command make test
