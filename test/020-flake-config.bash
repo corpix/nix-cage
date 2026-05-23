@@ -17,66 +17,66 @@ write_nix_cage_flake() {
   local dir="$1"
 
   mkdir -p "$dir/data"
-  printf '%s\n' \
-    '{' \
-    "  inputs.nix-cage.url = \"path:$root\";" \
-    '  outputs = { nix-cage, ... }: {' \
-    '    nixCageConfigurations.default = nix-cage.lib.mkNixCageConfiguration {' \
-    '      modules = [{' \
-    '        mounts.rw = [{ source = "./data"; target = "~/.nix-cage-test-data"; create = true; }];' \
-    '        environment.FOO = "flake";' \
-    '        arguments.nixDevelop = [ "--impure" ];' \
-    '        launcher = "direct";' \
-    '        command = "echo flake";' \
-    '      }];' \
-    '    };' \
-    '  };' \
-    '}' \
-    > "$dir/flake.nix"
+  cat > "$dir/flake.nix" <<EOF
+{
+  inputs.nix-cage.url = "path:$root";
+  outputs = { nix-cage, ... }: {
+    nixCageConfigurations.default = nix-cage.lib.mkNixCageConfiguration {
+      modules = [{
+        mounts.rw = [{ source = "./data"; target = "~/.nix-cage-test-data"; create = true; }];
+        environment.FOO = "flake";
+        arguments.nixDevelop = [ "--impure" ];
+        launcher = "direct";
+        command = "echo flake";
+      }];
+    };
+  };
+}
+EOF
 }
 
 write_ordinary_flake() {
   local dir="$1"
 
-  printf '%s\n' \
-    '{' \
-    "  inputs.nix-cage.url = \"path:$root\";" \
-    '  outputs = { nix-cage, ... }: {' \
-    '    packages.x86_64-linux.default = nix-cage.packages.x86_64-linux.default;' \
-    '  };' \
-    '}' \
-    > "$dir/flake.nix"
+  cat > "$dir/flake.nix" <<EOF
+{
+  inputs.nix-cage.url = "path:$root";
+  outputs = { nix-cage, ... }: {
+    packages.x86_64-linux.default = nix-cage.packages.x86_64-linux.default;
+  };
+}
+EOF
 }
 
 write_invalid_flake() {
   local dir="$1"
 
-  printf '%s\n' \
-    '{' \
-    '  outputs = { ... }: {' \
-    '    nixCageConfigurations.default = "not-a-configuration";' \
-    '  };' \
-    '}' \
-    > "$dir/flake.nix"
+  cat > "$dir/flake.nix" <<'EOF'
+{
+  outputs = { ... }: {
+    nixCageConfigurations.default = "not-a-configuration";
+  };
+}
+EOF
 }
 
 write_sandboxed_shell_flake() {
   local dir="$1"
 
-  printf '%s\n' \
-    '{' \
-    "  inputs.nix-cage.url = \"path:$root\";" \
-    '  outputs = { nix-cage, ... }: {' \
-    '    devShells.x86_64-linux.default = nix-cage.lib.mkSandboxedDevShell {' \
-    '      system = "x86_64-linux";' \
-    '      modules = [{' \
-    '        environment.FOO = "shell";' \
-    '        launcher = "nix-develop";' \
-    '      }];' \
-    '    };' \
-    '  };' \
-    '}' \
-    > "$dir/flake.nix"
+  cat > "$dir/flake.nix" <<EOF
+{
+  inputs.nix-cage.url = "path:$root";
+  outputs = { nix-cage, ... }: {
+    devShells.x86_64-linux.default = nix-cage.lib.mkSandboxedDevShell {
+      system = "x86_64-linux";
+      modules = [{
+        environment.FOO = "shell";
+        launcher = "nix-develop";
+      }];
+    };
+  };
+}
+EOF
 }
 
 flake_dir="$(mktemp -d /tmp/nix-cage-flake-config.XXXXXX)"
