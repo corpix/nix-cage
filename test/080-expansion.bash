@@ -30,3 +30,14 @@ cfg="$(cd "$work" && "$root/nix-cage" --show-config)"
 echo "$cfg" | jq -e --arg p "$HOME/tildedata" '.mounts.rw | map(.[0]) | index($p) != null' >/dev/null \
   || { echo "~ in mount path not expanded"; exit 1; }
 echo "~ expansion: ok"
+
+# Mounts whose source expands to an empty string (unset env var) must be dropped,
+# not silently rewritten to the cwd by abspath("").
+cat > "$work/nix-cage.json" <<'EOF'
+{ "mounts": { "ro": ["$NIX_CAGE_TEST_UNSET"] } }
+EOF
+unset NIX_CAGE_TEST_UNSET
+cfg="$(cd "$work" && "$root/nix-cage" --show-config)"
+echo "$cfg" | jq -e --arg p "$work" '.mounts.ro | map(.[0]) | index($p) == null' >/dev/null \
+  || { echo "empty mount source not dropped, cwd leaked into ro mounts"; exit 1; }
+echo "empty mount source: ok"

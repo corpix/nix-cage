@@ -92,7 +92,7 @@ def expand(v, ctx=environ):
 def expand_mount(v):
   source = expand(v[0])
   target = expand(v[1])
-  if source is None or target is None:
+  if not source or not target:
     return None
   return (abspath(source), abspath(target),) + tuple(v[2:])
 
