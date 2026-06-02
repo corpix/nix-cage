@@ -9,7 +9,7 @@ from sys import stderr
 from functools import reduce
 from json import load as json_unmarshal, loads as json_unmarshal_str, dump as json_marshal, dumps as json_marshal_str
 from pwd import getpwnam, getpwuid
-from string import Template
+from string import Template as template
 from collections import defaultdict
 from subprocess import run, PIPE
 
@@ -87,7 +87,7 @@ def realpathwhich(v):
   return v
 
 def expand(v, ctx=environ):
-  return Template(expanduser(v)).substitute(defaultdict(str, ctx))
+  return template(expanduser(v)).substitute(defaultdict(str, ctx))
 
 def expand_mount(v):
   source = expand(v[0])
