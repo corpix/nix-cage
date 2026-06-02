@@ -89,12 +89,18 @@ def realpathwhich(v):
 def expand(v, ctx=environ):
   return template(expanduser(v)).substitute(defaultdict(str, ctx))
 
-def expand_mount(v):
-  source = expand(v[0])
-  target = expand(v[1])
-  if not source or not target:
+def expand_mount_path(v):
+  path = expand(v)
+  if path == "":
     return None
-  return (abspath(source), abspath(target),) + tuple(v[2:])
+  return abspath(path)
+
+def expand_mount(v):
+  source = expand_mount_path(v[0])
+  target = expand_mount_path(v[1])
+  if source is None or target is None:
+    return None
+  return (source, target,) + tuple(v[2:])
 
 def normalize_mount(v):
   if isinstance(v, dict):
