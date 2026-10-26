@@ -231,7 +231,7 @@ def load_flake_config():
   if not exists("flake.nix"):
     return {}
 
-  flake_url = "path:{}".format(getcwd())
+  flake_url = "git+file://{}".format(getcwd())
   expr = """
     let
       flake = builtins.getFlake {flake_url};
